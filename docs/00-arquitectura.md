@@ -11,21 +11,28 @@ Se eligió el patrón más simple posible: **JWT compartido, sin gateway propio.
 
 ## Dos fuentes de identidad reales
 
-Hay dos actores que suben tickets, cada uno con su propio sistema de login:
+Hay dos actores que suben tickets, cada uno con su propio sistema de login real
+en producción:
 
-- **Pablo** (SGO): tiene cuenta real en `auth-service` de SGO (email + password).
-- **La dueña de FrezCo**: FrezCo no tiene tabla de usuarios — un único usuario y
-  contraseña en variables de entorno (`FREZCO_APP_USER`/`FREZCO_APP_PASSWORD`,
-  ver `frezco/CLAUDE.md`).
+- **Pablo** (SGO): `POST https://buildrr.cloud/auth/login` (email + password).
+  El nginx del frontend de SGO proxea `/auth` internamente al `api-gateway` —
+  no hace falta pasar por un subdominio de gateway separado.
+- **La dueña de FrezCo**: FrezCo no tiene tabla de usuarios — un único usuario,
+  autenticado por sesión (`POST https://frezco.buildrr.cloud/api/auth/login`,
+  body `{"usuario", "clave"}`, ver `frezco/backend/.../AutenticacionController.java`).
 
 Unificar esto es el trabajo del **patrón Mediator** (`auth/mediator/`):
 
 - `LoginMediator` es el único punto de entrada (`POST /auth/login`, usuario +
   contraseña). Recorre una lista de `AuthColleague` en orden y delega en el
   primero que "soporta" el request. Los colleagues no se conocen entre sí.
-- `FrezcoAuthColleague` (orden 1, chequeo local barato): soporta el request si
-  el usuario coincide con `FREZCO_APP_USER`. Si la contraseña matchea, firma un
-  JWT **propio** de buildrr-feedback (`jwt.own-secret` — nunca el secret de SGO).
+- `FrezcoAuthColleague` (orden 1): `soporta()` es un chequeo local barato — el
+  usuario coincide con `frezco.app-user` (env var, solo para rutear, NUNCA la
+  contraseña). Para autenticar, llama al login real de FrezCo
+  (`POST {frezco.login-url}/api/auth/login`) — si FrezCo lo acepta, firma un
+  JWT **propio** de buildrr-feedback (`jwt.own-secret`, nunca el secret de
+  SGO). La contraseña de la dueña de FrezCo no se duplica en ningún lado: la
+  valida el propio backend de FrezCo, siempre.
 - `SgoAuthColleague` (orden 2, fallback): reenvía las credenciales al login real
   de SGO (`POST {sgo.gateway-url}/auth/login`) y **re-emite el JWT que devuelve
   tal cual** — este backend nunca firma "tokens de SGO", solo los valida.

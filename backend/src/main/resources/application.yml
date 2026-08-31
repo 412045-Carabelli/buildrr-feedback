@@ -33,13 +33,16 @@ jwt:
   own-secret: ${JWT_OWN_SECRET:buildrr-feedback-own-secret-min-32-chars-long-hs256}
 
 sgo:
-  # URL pública del api-gateway de SGO (donde vive /auth/login). Sin esto el
-  # login de cuentas SGO no funciona.
-  gateway-url: ${SGO_GATEWAY_URL:http://api-gateway:8080}
+  # Dominio público real de SGO — el mismo /auth/login que usa Pablo para
+  # entrar al sistema día a día (el nginx del frontend de SGO proxea /auth
+  # internamente al api-gateway, ver frontend/nginx.conf de sistema-gestion-obras).
+  gateway-url: ${SGO_GATEWAY_URL:https://buildrr.cloud}
 
 frezco:
+  # Solo para el chequeo de ruteo del Mediator — la contraseña NUNCA vive acá,
+  # se valida contra el login real de FrezCo (ver FrezcoAuthColleague).
   app-user: ${FREZCO_APP_USER:}
-  app-password: ${FREZCO_APP_PASSWORD:}
+  login-url: ${FREZCO_LOGIN_URL:https://frezco.buildrr.cloud}
 
 minio:
   # Mismo MinIO que ya usa el stack SGO (documentos-service), bucket propio
