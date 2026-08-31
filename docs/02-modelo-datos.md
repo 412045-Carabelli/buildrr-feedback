@@ -1,6 +1,6 @@
 # Modelo de datos
 
-Base `buildrr_feedback`, SQL Server, misma instancia que SGO.
+Base `buildr_supp`, SQL Server, misma instancia (VPS) que SGO.
 
 ## ticket
 

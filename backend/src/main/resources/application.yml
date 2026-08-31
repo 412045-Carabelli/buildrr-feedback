@@ -5,7 +5,7 @@ spring:
   application:
     name: buildrr-feedback-service
   datasource:
-    url: jdbc:sqlserver://${DB_HOST:localhost}:${DB_PORT:1433};databaseName=buildrr_feedback;encrypt=false;trustServerCertificate=true
+    url: jdbc:sqlserver://${DB_HOST:localhost}:${DB_PORT:1433};databaseName=${DB_NAME:buildr_supp};encrypt=false;trustServerCertificate=true
     username: ${DB_USER:sa}
     password: ${DB_PASSWORD}
   jpa:

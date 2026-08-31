@@ -11,7 +11,7 @@ Spring Boot 3.3.5 (Java 17) · Spring Data JPA · SQL Server · Flyway · Angula
 standalone con PrimeNG v19 · MinIO (adjuntos) · Docker Compose sobre el VPS existente.
 
 La instancia de SQL Server y MinIO son las mismas que usa el Sistema de Gestión de
-Obras; este proyecto usa una base separada (`buildrr_feedback`) y un bucket separado.
+Obras; este proyecto usa una base separada (`buildr_supp`) y un bucket separado.
 
 ## Auth
 

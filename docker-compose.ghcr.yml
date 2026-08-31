@@ -27,7 +27,7 @@ services:
     environment:
       - DB_HOST=${DB_HOST:-sqlserver}
       - DB_PORT=${DB_PORT:-1433}
-      - DB_NAME=${DB_NAME:-buildrr_feedback}
+      - DB_NAME=${DB_NAME:-buildr_supp}
       - DB_USER=${DB_USER:-sa}
       - DB_PASSWORD=${DB_PASSWORD}
     entrypoint:
@@ -54,7 +54,7 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=${DB_HOST:-sqlserver}
       - DB_PORT=${DB_PORT:-1433}
-      - DB_NAME=${DB_NAME:-buildrr_feedback}
+      - DB_NAME=${DB_NAME:-buildr_supp}
       - DB_USER=${DB_USER:-sa}
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
@@ -102,7 +102,7 @@ services:
     environment:
       - DB_HOST=${DB_HOST:-sqlserver}
       - DB_PORT=${DB_PORT:-1433}
-      - DB_NAME=${DB_NAME:-buildrr_feedback}
+      - DB_NAME=${DB_NAME:-buildr_supp}
       - DB_USER=${DB_USER:-sa}
       - DB_PASSWORD=${DB_PASSWORD}
     volumes:
