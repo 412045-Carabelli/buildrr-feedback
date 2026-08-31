@@ -1,0 +1,19 @@
+<div class="flex flex-col h-screen bg-gray-50">
+
+  @if (!esRutaPublica) {
+    <app-header [showMenuToggle]="true" (toggleMenu)="toggleSidebar()"></app-header>
+  }
+
+  <div class="flex flex-1 overflow-hidden">
+
+    @if (!esRutaPublica) {
+      <app-sidebar [visible]="sidebarVisible"></app-sidebar>
+    }
+
+    <main class="flex-1 overflow-y-auto bg-gray-50">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>

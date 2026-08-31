@@ -1,0 +1,34 @@
+<header class="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
+  <div class="flex items-center justify-between">
+
+    <div class="flex items-center gap-4">
+      @if (showMenuToggle) {
+        <p-button
+          (onClick)="onToggleMenu()"
+          [rounded]="true"
+          [text]="true"
+          icon="pi pi-bars"
+          styleClass="text-gray-700">
+        </p-button>
+      }
+
+      <div class="flex items-center gap-2">
+        <span class="text-lg font-semibold text-gray-800">Buildrr Feedback</span>
+        @if (origen) {
+          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ origen }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="flex items-center">
+      <div
+        class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center cursor-pointer select-none ring-2 ring-indigo-100 hover:ring-indigo-300 hover:bg-indigo-700 transition-all"
+        (click)="toggleUserMenu($event)">
+        <i class="pi pi-user text-white text-sm"></i>
+      </div>
+
+      <p-menu #userMenu [model]="menuItems" [popup]="true" appendTo="body"></p-menu>
+    </div>
+
+  </div>
+</header>

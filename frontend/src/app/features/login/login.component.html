@@ -1,0 +1,39 @@
+<div class="flex items-center justify-center h-screen bg-gray-50">
+  <div class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm p-8">
+
+    <h1 class="text-xl font-semibold text-gray-800 mb-1">Buildrr Feedback</h1>
+    <p class="text-sm text-gray-500 mb-6">Entrá con tu cuenta de SGO o de FrezCo.</p>
+
+    <form [formGroup]="form" (ngSubmit)="ingresar()" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <label for="usuario" class="text-sm font-medium text-gray-700">Usuario</label>
+        <input pInputText id="usuario" formControlName="usuario" class="w-full" autocomplete="username" />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="password" class="text-sm font-medium text-gray-700">Contraseña</label>
+        <p-password
+          id="password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+          autocomplete="current-password">
+        </p-password>
+      </div>
+
+      @if (error) {
+        <p-message severity="error" [text]="error"></p-message>
+      }
+
+      <p-button
+        type="submit"
+        label="Ingresar"
+        [loading]="cargando"
+        styleClass="w-full justify-center mt-2">
+      </p-button>
+    </form>
+
+  </div>
+</div>

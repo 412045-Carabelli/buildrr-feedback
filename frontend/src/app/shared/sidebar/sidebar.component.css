@@ -1,0 +1,119 @@
+/* Copiado de sistema-gestion-obras/frontend — mismos colores/comportamiento
+   que el resto de la familia Buildrr, sin el bloqueo por plan ni el banner
+   de upgrade (no aplican acá). */
+
+.sidebar {
+  width: 240px;
+  height: calc(100vh - 60px);
+  flex-shrink: 0;
+  background-color: #e5e7eb;
+  overflow-y: auto;
+  transition: width 0.25s ease, opacity 0.2s ease;
+}
+
+.sidebar-hidden {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.nav-item {
+  position: relative;
+  overflow: hidden;
+  animation: nav-item-in 0.3s ease backwards;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  border-radius: 0 3px 3px 0;
+  background-color: #3b82f6;
+  transition: height 0.2s ease;
+}
+
+.nav-item:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  transform: translateX(2px);
+}
+
+.nav-item:active {
+  transform: scale(0.98);
+}
+
+.nav-item-icon {
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.nav-item:hover .nav-item-icon {
+  transform: scale(1.12);
+}
+
+.nav-item.active-nav-item {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.nav-item.active-nav-item::before {
+  height: 60%;
+}
+
+.nav-item.active-nav-item i {
+  color: #3b82f6;
+}
+
+@keyframes nav-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item {
+    animation: none;
+  }
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #e5e7eb;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 60px;
+    z-index: 100;
+    height: calc(100vh - 60px);
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+
+  .sidebar-hidden {
+    width: 240px;
+    transform: translateX(-100%);
+  }
+}

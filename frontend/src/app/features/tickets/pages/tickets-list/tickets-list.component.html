@@ -1,0 +1,38 @@
+<p-toast></p-toast>
+
+<div class="p-6">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-semibold text-gray-800">Tickets</h1>
+    <a routerLink="/tickets/nuevo">
+      <p-button label="Nuevo ticket" icon="pi pi-plus" styleClass="btn-mobile-icon"></p-button>
+    </a>
+  </div>
+
+  <p-table [value]="tickets" [loading]="cargando" [paginator]="true" [rows]="15" dataKey="id">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>#</th>
+        <th>Título</th>
+        <th>Tipo</th>
+        <th>Producto</th>
+        <th>Estado</th>
+        <th>Creado</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-ticket>
+      <tr class="cursor-pointer" (click)="verTicket(ticket.id)">
+        <td>{{ ticket.id }}</td>
+        <td>{{ ticket.titulo }}</td>
+        <td>{{ ticket.tipo === 'BUG' ? 'Bug' : 'Función nueva' }}</td>
+        <td>{{ ticket.producto }}</td>
+        <td><p-tag [severity]="severityEstado(ticket.estado)" [value]="ticket.estado"></p-tag></td>
+        <td>{{ ticket.creadoEn | date: 'dd/MM/yyyy HH:mm' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center text-gray-400 py-8">Todavía no hay tickets cargados.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

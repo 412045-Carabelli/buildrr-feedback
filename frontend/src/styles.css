@@ -1,0 +1,175 @@
+@import "tailwindcss";
+@import "primeicons/primeicons.css";
+
+/* Misma tipografía y escala que sistema-gestion-obras/frontend — mismo "look"
+   en toda la familia Buildrr. */
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+:root {
+  --font-scale-multiplier: 0.9;
+  --base-font-size: 1rem;
+}
+
+html {
+  font-size: calc(var(--base-font-size) * var(--font-scale-multiplier));
+}
+
+body {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+@media (prefers-large-text: enabled) {
+  :root {
+    --font-scale-multiplier: 1.1;
+  }
+}
+
+/* ============================================================
+   PrimeNG DataTable — normalización global, copiada tal cual de
+   sistema-gestion-obras/frontend/src/styles.css. Aplica a TODOS los
+   p-table de esta app. No usar ::ng-deep en componentes individuales
+   para estos casos — si algo no calza, se ajusta acá.
+   ============================================================ */
+
+.p-datatable {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;         /* slate-100 */
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.03);
+  animation: table-fade-in 0.3s ease;
+}
+
+.border .p-datatable {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+@keyframes table-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p-datatable {
+    animation: none;
+  }
+}
+
+.detail-fade-in {
+  animation: table-fade-in 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-fade-in {
+    animation: none;
+  }
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: #fafafa;
+  color: #64748b;                    /* slate-500 */
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;  /* slate-100 */
+  white-space: nowrap;
+}
+
+.p-datatable .p-datatable-thead > tr > th.p-sortable-column {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.p-datatable .p-datatable-sort-icon,
+.p-datatable .p-sortable-column-icon {
+  width: 0.7rem;
+  height: 0.7rem;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f8fafc;  /* slate-50 */
+  color: #334155;                    /* slate-700 */
+  transition: background-color 150ms ease;
+}
+
+.p-datatable .p-datatable-tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  transition: background-color 150ms ease;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background-color: #f8fafc !important;  /* slate-50 */
+}
+
+.p-datatable .p-datatable-tfoot > tr > td {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #f1f5f9;    /* slate-100 */
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #1e293b;                    /* slate-800 */
+}
+
+.p-tag {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+}
+
+.p-paginator {
+  padding: 1rem 1.25rem;
+  background-color: #ffffff;
+  border-top: 1px solid #f8fafc;   /* slate-50 */
+}
+
+.p-paginator .p-paginator-current {
+  color: #94a3b8;                   /* slate-400 */
+  font-size: 0.8125rem;
+}
+
+.p-inputtext {
+  border: 1px solid #e5e7eb;
+}
+
+.p-inputtext:enabled:hover {
+  border-color: #d1d5db;
+}
+
+.p-inputtext:enabled:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.2);
+}
+
+.p-dropdown,
+.p-multiselect,
+.p-select {
+  border: 1px solid #e5e7eb;
+}
+
+.p-dropdown:not(.p-disabled):hover,
+.p-multiselect:not(.p-disabled):hover,
+.p-select:not(.p-disabled):hover {
+  border-color: #d1d5db;
+}
+
+@media (max-width: 768px) {
+  .p-datatable .p-datatable-thead > tr > th,
+  .p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
