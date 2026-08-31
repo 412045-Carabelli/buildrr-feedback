@@ -1,8 +1,6 @@
 // Todos los interfaces/types en un único archivo — mismo criterio que
 // sistema-gestion-obras/frontend/src/app/core/models/models.ts.
 
-export type OrigenCuenta = 'SGO' | 'FRESCO';
-
 export interface LoginRequest {
   usuario: string;
   password: string;
@@ -10,7 +8,6 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  origen: OrigenCuenta;
 }
 
 export type TipoTicket = 'BUG' | 'FUNCION_NUEVA';

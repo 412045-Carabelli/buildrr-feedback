@@ -2,7 +2,6 @@ package ar.buildrr.feedback.auth;
 
 import ar.buildrr.feedback.auth.dto.LoginRequest;
 import ar.buildrr.feedback.auth.dto.LoginResponse;
-import ar.buildrr.feedback.auth.mediator.LoginMediator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-  private final LoginMediator loginMediator;
+  private final SgoLoginClient sgoLoginClient;
 
   @PostMapping("/login")
   public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-    return ResponseEntity.ok(loginMediator.autenticar(request));
+    return ResponseEntity.ok(sgoLoginClient.login(request));
   }
 }

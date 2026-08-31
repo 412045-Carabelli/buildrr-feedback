@@ -24,25 +24,18 @@ spring:
       max-request-size: 100MB
 
 jwt:
-  # Mismo default que sistema-gestion-obras usa en dev (application-dev.properties
-  # de auth-service/api-gateway). En prod, JWT_SECRET tiene que ser el valor real
-  # configurado en el VPS de SGO — no está versionado en ningún repo.
+  # Mismo secret HS256 que auth-service de SGO — única fuente de identidad
+  # del ecosistema. Mismo default que sistema-gestion-obras usa en dev. En
+  # prod, JWT_SECRET tiene que ser el valor real configurado en el VPS de
+  # SGO — no está versionado en ningún repo.
   secret: ${JWT_SECRET:your-super-secret-key-min-32-chars-long-for-hs256-algorithm}
-  # Secret propio de buildrr-feedback, solo para tokens de cuentas FrezCo. Tiene
-  # que ser DISTINTO de jwt.secret.
-  own-secret: ${JWT_OWN_SECRET:buildrr-feedback-own-secret-min-32-chars-long-hs256}
 
 sgo:
-  # Dominio público real de SGO — el mismo /auth/login que usa Pablo para
-  # entrar al sistema día a día (el nginx del frontend de SGO proxea /auth
-  # internamente al api-gateway, ver frontend/nginx.conf de sistema-gestion-obras).
+  # A qué "ambiente" de SGO le pega /auth/login: prod (sgo_auth, dominio
+  # público real) o test (sgo_auth_test, solo alcanzable si alguien corre
+  # auth-service local con perfil dev — ver auth-service/application-dev.properties
+  # de sistema-gestion-obras, puerto 8089). Default: prod.
   gateway-url: ${SGO_GATEWAY_URL:https://buildrr.cloud}
-
-frezco:
-  # Solo para el chequeo de ruteo del Mediator — la contraseña NUNCA vive acá,
-  # se valida contra el login real de FrezCo (ver FrezcoAuthColleague).
-  app-user: ${FREZCO_APP_USER:}
-  login-url: ${FREZCO_LOGIN_URL:https://frezco.buildrr.cloud}
 
 minio:
   # Mismo MinIO que ya usa el stack SGO (documentos-service), bucket propio

@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,17 +15,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
- * Valida el JWT de la request contra 2 secrets fijos conocidos: el de
- * auth-service de SGO (tokens que este backend nunca firma) y el propio de
- * buildrr-feedback (tokens de cuentas FrezCo, ver auth/mediator). No hay
- * selección arbitraria por el cliente — se prueba primero uno, después el
- * otro. Ver docs/00-arquitectura.md.
+ * Valida el JWT de la request contra el secret de auth-service de SGO —
+ * única fuente de identidad del ecosistema (ver docs/00-arquitectura.md). No
+ * hay llamada de red en cada request, solo verificación de firma/expiración.
  */
 @Component
 @RequiredArgsConstructor
@@ -46,39 +42,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     String token = authHeader.substring(7);
-    Claims claims = parsear(token, jwtProperties.getSecret());
-    OrigenCuenta origen = OrigenCuenta.SGO;
+    try {
+      Claims claims = Jwts.parser()
+          .verifyWith(Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)))
+          .build()
+          .parseSignedClaims(token)
+          .getPayload();
 
-    if (claims == null) {
-      claims = parsear(token, jwtProperties.getOwnSecret());
-      origen = OrigenCuenta.FRESCO;
-    }
-
-    if (claims != null) {
-      Object userIdClaim = claims.get("userId");
-      Long userId = userIdClaim != null ? ((Number) userIdClaim).longValue() : null;
+      Long userId = ((Number) claims.get("userId")).longValue();
       String username = (String) claims.get("username");
       String rol = (String) claims.getOrDefault("rol", "USER");
       Object orgIdObj = claims.get("organizacionId");
       String organizacionId = orgIdObj != null ? String.valueOf(orgIdObj) : null;
 
-      AuthenticatedUser user = new AuthenticatedUser(userId, username, rol, organizacionId, origen);
+      AuthenticatedUser user = new AuthenticatedUser(userId, username, rol, organizacionId);
       var authToken = new UsernamePasswordAuthenticationToken(user, null, List.of());
       SecurityContextHolder.getContext().setAuthentication(authToken);
+
+    } catch (JwtException | IllegalArgumentException e) {
+      log.warn("Token JWT inválido: {}", e.getMessage());
+      // no seteamos autenticación; SecurityConfig decide si la ruta requiere auth
     }
 
     filterChain.doFilter(request, response);
-  }
-
-  private Claims parsear(String token, String secret) {
-    try {
-      SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-      return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-    } catch (SignatureException e) {
-      return null; // no era este secret, se prueba el otro
-    } catch (JwtException | IllegalArgumentException e) {
-      log.warn("Token JWT inválido: {}", e.getMessage());
-      return null;
-    }
   }
 }

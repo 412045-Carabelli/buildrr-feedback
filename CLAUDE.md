@@ -27,11 +27,20 @@ standalone + PrimeNG v19 · MinIO (adjuntos) · Docker Compose.
 
 ## Auth
 
-Sin tabla de usuarios propia. Dos fuentes de identidad reales (SGO, FrezCo)
-unificadas por un Mediator — ver [docs/00-arquitectura.md](docs/00-arquitectura.md)
-antes de tocar `auth/`. `JwtAuthenticationFilter` prueba 2 secrets fijos
-(`jwt.secret` de SGO, `jwt.own-secret` propio) y arma un `AuthenticatedUser`
-con `origen`. No hardcodear ningún secret: vienen de `JWT_SECRET`/`JWT_OWN_SECRET`.
+Sin tabla de usuarios propia. **Una sola** fuente de identidad: `auth-service`
+de SGO (`sgo_auth`) — Pablo y la dueña de FrezCo son las dos cuentas normales
+ahí, no hay nada que rutear entre sistemas distintos. Ver
+[docs/00-arquitectura.md](docs/00-arquitectura.md) antes de tocar `auth/`.
+`SgoLoginClient` reenvía el login y re-emite el JWT de SGO tal cual — este
+backend nunca firma tokens propios. `JwtAuthenticationFilter` valida contra
+`jwt.secret` (el mismo que SGO) y arma un `AuthenticatedUser`. No hardcodear
+el secret: viene de `JWT_SECRET`.
+
+No reintroducir un Mediator/AuthColleague por "fuente de identidad": hubo uno
+(SGO + FrezCo con backend propio) y se sacó al unificar todo en `sgo_auth` —
+quedaba con una sola implementación real, justo el anti-patrón de la sección
+de abajo. Si en el futuro aparece una tercera fuente de identidad *real* (no
+una cuenta más en `sgo_auth`), ahí sí vale la pena.
 
 ## Patrones aplicados (no agregar otros sin necesidad concreta)
 
@@ -39,8 +48,6 @@ con `origen`. No hardcodear ningún secret: vienen de `JWT_SECRET`/`JWT_OWN_SECR
   (BUG, FUNCION_NUEVA), cada uno con sus propias reglas de armado/validación.
   Agregar un tipo de ticket es agregar una clase + registrarla en el enum, no
   tocar `TicketServiceImpl`.
-- **Mediator** (`auth/mediator/`) — `LoginMediator` + `AuthColleague` por
-  fuente de identidad (SGO, FrezCo). Ver docs/00-arquitectura.md.
 - **State** (`ticket/estado/`) — un `EstadoTicket` por estado del ciclo de
   vida, cada uno declara a qué estados puede moverse. `EstadoTicketResolver`
   valida transiciones sin switch. Agregar un estado nuevo (si algún día hace

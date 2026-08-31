@@ -15,10 +15,10 @@ Obras; este proyecto usa una base separada (`buildr_supp`) y un bucket separado.
 
 ## Auth
 
-Sin tabla de usuarios propia. Dos fuentes de identidad reales, unificadas por
-un Mediator (`auth/mediator/`): Pablo entra con su cuenta de SGO (reenviada al
-login real de `auth-service`), la dueña de FrezCo entra con el usuario/contraseña
-único que ya tiene FrezCo. Ver [docs/00-arquitectura.md](docs/00-arquitectura.md).
+Sin tabla de usuarios propia. Una sola fuente de identidad: `auth-service` de
+SGO (`sgo_auth`). Pablo y la dueña de FrezCo son cuentas normales ahí — el
+login se reenvía tal cual y el JWT que devuelve SGO se re-emite sin tocar.
+Ver [docs/00-arquitectura.md](docs/00-arquitectura.md).
 
 ## Estructura
 
@@ -28,7 +28,7 @@ backend/       Spring Boot (un módulo por dominio)
   adjunto/       fotos/videos/docs — sube a MinIO segmentado por ticket, descarga
                  vía proxy del propio backend (bucket privado)
   registrohoras/ carga de horas por ticket (pendiente)
-  auth/          Mediator de login (SGO / FrezCo), filtro JWT
+  auth/          login contra sgo_auth (única fuente de identidad), filtro JWT
   config/        CORS, MinIO, seguridad, RestClient
 frontend/      Angular standalone
   features/      vista Pablo (crear/ver tickets) + vista admin (kanban, estados, horas)
@@ -43,7 +43,7 @@ docs/           documentación funcional y técnica
 
 | Documento | Contenido |
 |---|---|
-| [docs/00-arquitectura.md](docs/00-arquitectura.md) | cómo se conecta con SGO/FrezCo, JWT compartido |
+| [docs/00-arquitectura.md](docs/00-arquitectura.md) | por qué una sola fuente de identidad (sgo_auth), JWT compartido |
 | [docs/01-alcance.md](docs/01-alcance.md) | qué se construye y qué queda afuera |
 | [docs/02-modelo-datos.md](docs/02-modelo-datos.md) | esquema de tablas |
 | [docs/03-ciclo-de-vida.md](docs/03-ciclo-de-vida.md) | estados de un ticket y transiciones válidas |

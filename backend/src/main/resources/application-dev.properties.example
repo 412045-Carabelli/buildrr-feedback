@@ -15,6 +15,8 @@ DB_PASSWORD=
 # cambiado.
 JWT_SECRET=
 
-# Usuario real de la dueña de FrezCo (SOLO para que el Mediator sepa
-# rutear el login hacia ella — la contraseña nunca va acá).
-FREZCO_APP_USER=
+# Por default SGO_GATEWAY_URL apunta a prod (https://buildrr.cloud, base
+# sgo_auth). Para probar contra sgo_auth_test hay que levantar el
+# auth-service de SGO local con perfil dev (sistema-gestion-obras/backend1.0/auth-service,
+# puerto 8089) y descomentar esta línea:
+# SGO_GATEWAY_URL=http://localhost:8089

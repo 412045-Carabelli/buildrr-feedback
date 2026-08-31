@@ -24,10 +24,6 @@ export class HeaderComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  get origen(): string {
-    return this.authService.getOrigen() ?? '';
-  }
-
   onToggleMenu(): void {
     this.toggleMenu.emit();
   }
