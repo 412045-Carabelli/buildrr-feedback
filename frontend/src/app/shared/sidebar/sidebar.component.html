@@ -6,6 +6,7 @@
         <a
           [routerLink]="item.path"
           routerLinkActive="active-nav-item"
+          [routerLinkActiveOptions]="{ exact: true }"
           [style.animation-delay.ms]="i * 40"
           class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-800 no-underline transition-all duration-200 hover:bg-gray-900/10">
           <i [class]="'pi ' + item.icon + ' text-xl nav-item-icon'"></i>
