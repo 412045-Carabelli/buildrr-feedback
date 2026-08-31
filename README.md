@@ -24,12 +24,12 @@ login real de `auth-service`), la dueña de FrezCo entra con el usuario/contrase
 
 ```
 backend/       Spring Boot (un módulo por dominio)
-  ticket/            alta, listado, cambio de estado
-  adjunto/            fotos/videos/docs, subida a MinIO
-  registrohoras/       carga de horas por ticket
-  historialestado/    auditoría de transiciones de estado
-  auth/                filtro JWT compartido con SGO (sin login propio)
-  config/              CORS, MinIO, seguridad
+  ticket/        alta (Factory Method por tipo), listado, cambio de estado (State)
+  adjunto/       fotos/videos/docs — sube a MinIO segmentado por ticket, descarga
+                 vía proxy del propio backend (bucket privado)
+  registrohoras/ carga de horas por ticket (pendiente)
+  auth/          Mediator de login (SGO / FrezCo), filtro JWT
+  config/        CORS, MinIO, seguridad, RestClient
 frontend/      Angular standalone
   features/      vista Pablo (crear/ver tickets) + vista admin (kanban, estados, horas)
   core/          servicios HTTP, interceptor JWT

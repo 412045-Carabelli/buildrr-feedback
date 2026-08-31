@@ -16,6 +16,12 @@ spring:
         dialect: org.hibernate.dialect.SQLServerDialect
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      # Provisorio — ver docs/01-alcance.md "Decisiones pendientes": falta
+      # confirmar con Pablo el tamaño máximo real de video que va a subir.
+      max-file-size: 100MB
+      max-request-size: 100MB
 
 jwt:
   # Mismo default que sistema-gestion-obras usa en dev (application-dev.properties
@@ -36,9 +42,13 @@ frezco:
   app-password: ${FREZCO_APP_PASSWORD:}
 
 minio:
+  # Mismo MinIO que ya usa el stack SGO (documentos-service), bucket propio
+  # "buildrr-feedback" separado del de SGO. Credenciales: mismo valor que
+  # sistema-gestion-obras/backend1.0/documentos-service/application-prod.properties
+  # (MINIO_ROOT_USER/PASSWORD del docker-compose de SGO).
   endpoint: ${MINIO_ENDPOINT:http://minio:9000}
-  access-key: ${MINIO_ACCESS_KEY}
-  secret-key: ${MINIO_SECRET_KEY}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: buildrr-feedback
 
 management:

@@ -22,14 +22,25 @@ Base `buildrr_feedback`, SQL Server, misma instancia que SGO.
 |---|---|---|
 | id | BIGINT IDENTITY PK | |
 | ticket_id | BIGINT FK → ticket | |
-| tipo | NVARCHAR(20) | `FOTO` \| `VIDEO` \| `DOCUMENTO` |
-| url | NVARCHAR(500) | ubicación en MinIO |
+| historial_estado_id | BIGINT FK → historial_estado, NULL | ver abajo |
+| tipo | NVARCHAR(20) | `FOTO` \| `VIDEO` \| `DOCUMENTO` (inferido del content-type al subir) |
+| url | NVARCHAR(500) | **object key** dentro del bucket MinIO (`ticket/{ticketId}/{uuid}-{nombre}`), NO una URL pública — el bucket es privado |
+| nombre_original | NVARCHAR(255) | nombre del archivo tal como lo subió el usuario |
+| content_type | NVARCHAR(100) | para reconstruir la respuesta HTTP de descarga |
 | subido_por | NVARCHAR(100) | |
 | subido_en | DATETIME2 | |
 
 Un adjunto puede pertenecer al ticket en sí (evidencia inicial de Pablo) o a un
 `historial_estado` puntual (captura de "así quedó" del admin) — se linkea por
 `historial_estado_id` opcional además de `ticket_id`.
+
+Storage: MinIO, mismo servidor que usa SGO (`documentos-service`), bucket propio
+`buildrr-feedback` separado del de SGO. Segmentado por ticket vía prefijo de
+object key (`ticket/{ticketId}/...`), no por bucket — un bucket por ticket sería
+miles de buckets con volumen real. La descarga es un proxy del propio backend
+(`GET /api/adjuntos/{id}/descargar`), no una URL directa a MinIO: el hostname
+interno (`minio:9000`, red Docker `sgo_backend`) no es alcanzable desde el
+navegador. Ver [00-arquitectura.md](00-arquitectura.md).
 
 ## registro_horas
 

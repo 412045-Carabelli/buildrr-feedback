@@ -1,5 +1,7 @@
 package ar.buildrr.feedback.handler;
 
+import ar.buildrr.feedback.adjunto.exception.AdjuntoInvalidoException;
+import ar.buildrr.feedback.adjunto.exception.AdjuntoNotFoundException;
 import ar.buildrr.feedback.auth.exception.CredencialesInvalidasException;
 import ar.buildrr.feedback.ticket.exception.TicketInvalidoException;
 import ar.buildrr.feedback.ticket.exception.TicketNotFoundException;
@@ -22,12 +24,12 @@ import java.util.Map;
 @Slf4j
 public class RestExceptionHandler {
 
-  @ExceptionHandler(TicketNotFoundException.class)
-  public ResponseEntity<ErrorApi> handleNotFound(TicketNotFoundException ex, HttpServletRequest request) {
+  @ExceptionHandler({TicketNotFoundException.class, AdjuntoNotFoundException.class})
+  public ResponseEntity<ErrorApi> handleNotFound(RuntimeException ex, HttpServletRequest request) {
     return build(404, ex.getMessage(), request);
   }
 
-  @ExceptionHandler({TicketInvalidoException.class, TransicionInvalidaException.class})
+  @ExceptionHandler({TicketInvalidoException.class, TransicionInvalidaException.class, AdjuntoInvalidoException.class})
   public ResponseEntity<ErrorApi> handleInvalido(RuntimeException ex, HttpServletRequest request) {
     return build(400, ex.getMessage(), request);
   }

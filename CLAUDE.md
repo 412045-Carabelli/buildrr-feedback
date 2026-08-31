@@ -46,6 +46,17 @@ con `origen`. No hardcodear ningún secret: vienen de `JWT_SECRET`/`JWT_OWN_SECR
   valida transiciones sin switch. Agregar un estado nuevo (si algún día hace
   falta "cancelado") es agregar una clase `@Component`, no tocar el service.
 
+## Adjuntos / MinIO
+
+Un bucket propio (`buildrr-feedback`, mismo servidor MinIO que SGO), segmentado
+por ticket con el **object key** (`ticket/{ticketId}/{uuid}-{nombre}`), no por
+bucket — un bucket por ticket no escala ni tiene sentido con este volumen. El
+bucket es privado: la descarga es un proxy de este backend
+(`GET /api/adjuntos/{id}/descargar`, mismo patrón que `documentos-service` de
+SGO), nunca una URL directa/prefirmada a MinIO — su hostname interno
+(`minio:9000`) no es alcanzable desde el navegador. Ver
+[docs/02-modelo-datos.md](docs/02-modelo-datos.md).
+
 ## Convenciones (mismo estilo que sistema-gestion-obras y frezco)
 
 - Entidades: `@Getter @Setter @Builder @NoArgsConstructor @AllArgsConstructor`,
