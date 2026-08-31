@@ -22,6 +22,18 @@ jwt:
   # de auth-service/api-gateway). En prod, JWT_SECRET tiene que ser el valor real
   # configurado en el VPS de SGO — no está versionado en ningún repo.
   secret: ${JWT_SECRET:your-super-secret-key-min-32-chars-long-for-hs256-algorithm}
+  # Secret propio de buildrr-feedback, solo para tokens de cuentas FrezCo. Tiene
+  # que ser DISTINTO de jwt.secret.
+  own-secret: ${JWT_OWN_SECRET:buildrr-feedback-own-secret-min-32-chars-long-hs256}
+
+sgo:
+  # URL pública del api-gateway de SGO (donde vive /auth/login). Sin esto el
+  # login de cuentas SGO no funciona.
+  gateway-url: ${SGO_GATEWAY_URL:http://api-gateway:8080}
+
+frezco:
+  app-user: ${FREZCO_APP_USER:}
+  app-password: ${FREZCO_APP_PASSWORD:}
 
 minio:
   endpoint: ${MINIO_ENDPOINT:http://minio:9000}

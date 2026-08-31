@@ -5,12 +5,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Mismo secret HS256 que usa auth-service de SGO. Se configura por variable de
- * entorno (JWT_SECRET), nunca se hardcodea el valor real acá.
+ * Dos secrets HS256 posibles: `secret` es el de auth-service de SGO (tokens que
+ * este backend NUNCA firma, solo valida). `ownSecret` es propio de
+ * buildrr-feedback, usado únicamente para tokens de cuentas FrezCo (ver
+ * auth/mediator/FrezcoAuthColleague). Ninguno se hardcodea acá: vienen de
+ * JWT_SECRET / JWT_OWN_SECRET.
  */
 @Configuration
 @ConfigurationProperties(prefix = "jwt")
 @Data
 public class JwtProperties {
   private String secret;
+  private String ownSecret;
 }

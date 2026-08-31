@@ -15,10 +15,10 @@ Obras; este proyecto usa una base separada (`buildrr_feedback`) y un bucket sepa
 
 ## Auth
 
-Sin login propio. El backend valida el mismo JWT (HS256, mismo secret) que emite
-`auth-service` de SGO — mismo patrón que copia `api-gateway/.../JwtAuthenticationFilter`.
-Pablo entra con la cuenta que ya tiene en SGO; no se crean usuarios nuevos acá.
-Ver [docs/00-arquitectura.md](docs/00-arquitectura.md).
+Sin tabla de usuarios propia. Dos fuentes de identidad reales, unificadas por
+un Mediator (`auth/mediator/`): Pablo entra con su cuenta de SGO (reenviada al
+login real de `auth-service`), la dueña de FrezCo entra con el usuario/contraseña
+único que ya tiene FrezCo. Ver [docs/00-arquitectura.md](docs/00-arquitectura.md).
 
 ## Estructura
 

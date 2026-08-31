@@ -23,8 +23,9 @@
 - Notificaciones automáticas (email/push) al cambiar de estado.
 - Comentarios tipo hilo/chat dentro del ticket — solo una nota del admin por
   cambio de estado relevante.
-- Roles múltiples o gestión de permisos — dos actores fijos: Pablo (cliente) y
-  Gino (admin), identificados por su JWT de SGO.
+- Roles múltiples o gestión de permisos — tres actores fijos: Pablo (cliente,
+  cuenta SGO), la dueña de FrezCo (cliente, login propio de FrezCo) y Gino
+  (admin). Login unificado por el Mediator de [00-arquitectura.md](00-arquitectura.md).
 - Priorización/SLA.
 - Búsqueda o reportes avanzados.
 

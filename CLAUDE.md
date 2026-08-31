@@ -5,10 +5,11 @@ agentes IA trabajando en este repo.
 
 ## Principio rector
 
-**Simplicidad sobre completitud.** Dos actores fijos (Pablo cliente, Gino admin),
-un ciclo de vida de 4 estados, sin contratos ni facturación. Ante dos soluciones
-que cumplen el requisito, elegir la más simple. Ver [docs/01-alcance.md](docs/01-alcance.md)
-para lo que está explícitamente afuera antes de agregar nada.
+**Simplicidad sobre completitud.** Tres actores fijos (Pablo cliente SGO, la
+dueña de FrezCo cliente, Gino admin), un ciclo de vida de 4 estados, sin
+contratos ni facturación. Ante dos soluciones que cumplen el requisito, elegir
+la más simple. Ver [docs/01-alcance.md](docs/01-alcance.md) para lo que está
+explícitamente afuera antes de agregar nada.
 
 ## Leer antes de escribir código
 
@@ -26,10 +27,24 @@ standalone + PrimeNG v19 · MinIO (adjuntos) · Docker Compose.
 
 ## Auth
 
-Sin login propio, sin tabla de usuarios. El filtro `auth/JwtAuthenticationFilter`
-valida el JWT HS256 de `auth-service` (SGO) y arma un `AuthenticatedUser` con lo
-que traiga el claim (`userId`, `username`, `rol`, `organizacionId`). No pedir
-nada por red a auth-service. No hardcodear el secret: viene de `JWT_SECRET`.
+Sin tabla de usuarios propia. Dos fuentes de identidad reales (SGO, FrezCo)
+unificadas por un Mediator — ver [docs/00-arquitectura.md](docs/00-arquitectura.md)
+antes de tocar `auth/`. `JwtAuthenticationFilter` prueba 2 secrets fijos
+(`jwt.secret` de SGO, `jwt.own-secret` propio) y arma un `AuthenticatedUser`
+con `origen`. No hardcodear ningún secret: vienen de `JWT_SECRET`/`JWT_OWN_SECRET`.
+
+## Patrones aplicados (no agregar otros sin necesidad concreta)
+
+- **Factory Method** (`ticket/factory/`) — un `TicketFactory` por `TipoTicket`
+  (BUG, FUNCION_NUEVA), cada uno con sus propias reglas de armado/validación.
+  Agregar un tipo de ticket es agregar una clase + registrarla en el enum, no
+  tocar `TicketServiceImpl`.
+- **Mediator** (`auth/mediator/`) — `LoginMediator` + `AuthColleague` por
+  fuente de identidad (SGO, FrezCo). Ver docs/00-arquitectura.md.
+- **State** (`ticket/estado/`) — un `EstadoTicket` por estado del ciclo de
+  vida, cada uno declara a qué estados puede moverse. `EstadoTicketResolver`
+  valida transiciones sin switch. Agregar un estado nuevo (si algún día hace
+  falta "cancelado") es agregar una clase `@Component`, no tocar el service.
 
 ## Convenciones (mismo estilo que sistema-gestion-obras y frezco)
 
