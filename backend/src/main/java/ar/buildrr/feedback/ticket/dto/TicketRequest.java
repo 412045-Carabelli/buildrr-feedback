@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,6 +24,11 @@ public class TicketRequest {
 
   @NotBlank(message = "Título requerido")
   private String titulo;
+
+  private String modulo;
+
+  /** Si no la manda el front, el factory usa hoy. */
+  private LocalDate fecha;
 
   private String descripcion;
 }

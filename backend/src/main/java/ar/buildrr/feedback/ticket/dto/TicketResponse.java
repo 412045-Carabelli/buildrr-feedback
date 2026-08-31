@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +21,8 @@ public class TicketResponse {
   private TipoTicket tipo;
   private Producto producto;
   private String titulo;
+  private String modulo;
+  private LocalDate fecha;
   private String descripcion;
   private String estado;
   private String creadoPor;

@@ -10,7 +10,9 @@ Base `buildr_supp`, SQL Server, misma instancia (VPS) que SGO.
 | tipo | NVARCHAR(20) | `BUG` \| `FUNCION_NUEVA` |
 | producto | NVARCHAR(20) | `SGO` \| `FRESCO` |
 | titulo | NVARCHAR(255) | |
-| descripcion | NVARCHAR(MAX) | |
+| modulo | NVARCHAR(255) | opcional, texto libre (ej. "Movimientos", "Facturación") |
+| fecha | DATE | fecha del hecho/reporte, la carga el usuario — default hoy, no es auditoría |
+| descripcion | NVARCHAR(MAX) | HTML que arma el editor (p-editor/Quill) del front |
 | estado | NVARCHAR(20) | `NUEVO` \| `EN_PROGRESO` \| `TESTING` \| `COMPLETADO` |
 | creado_por | NVARCHAR(100) | username del JWT (Pablo) |
 | creado_en | DATETIME2 | |

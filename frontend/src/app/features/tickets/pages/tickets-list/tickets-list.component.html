@@ -15,8 +15,9 @@
         <th>Título</th>
         <th>Tipo</th>
         <th>Producto</th>
+        <th>Módulo</th>
         <th>Estado</th>
-        <th>Creado</th>
+        <th>Fecha</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-ticket>
@@ -25,13 +26,14 @@
         <td>{{ ticket.titulo }}</td>
         <td>{{ ticket.tipo === 'BUG' ? 'Bug' : 'Función nueva' }}</td>
         <td>{{ ticket.producto }}</td>
+        <td>{{ ticket.modulo || '—' }}</td>
         <td><p-tag [severity]="severityEstado(ticket.estado)" [value]="ticket.estado"></p-tag></td>
-        <td>{{ ticket.creadoEn | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ ticket.fecha | date: 'dd/MM/yyyy' }}</td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="6" class="text-center text-gray-400 py-8">Todavía no hay tickets cargados.</td>
+        <td colspan="7" class="text-center text-gray-400 py-8">Todavía no hay tickets cargados.</td>
       </tr>
     </ng-template>
   </p-table>

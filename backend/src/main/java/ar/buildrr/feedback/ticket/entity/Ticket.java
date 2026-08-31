@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "ticket")
@@ -28,6 +29,18 @@ public class Ticket {
   @Column(nullable = false, length = 255)
   private String titulo;
 
+  @Column(length = 255)
+  private String modulo;
+
+  /** Fecha del hecho/reporte (no de auditoría) — la carga el usuario, default hoy. */
+  @Column(nullable = false)
+  private LocalDate fecha;
+
+  /**
+   * HTML que arma el editor (p-editor/Quill) — se persiste tal cual. Al
+   * mostrarlo con [innerHTML] en Angular, el sanitizer del framework lo
+   * limpia solo; no hace falta sanitizar acá.
+   */
   @Column(columnDefinition = "NVARCHAR(MAX)")
   private String descripcion;
 

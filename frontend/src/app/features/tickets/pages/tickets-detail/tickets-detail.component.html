@@ -12,17 +12,23 @@
         <p-tag [severity]="severityEstado(ticket.estado)" [value]="ticket.estado"></p-tag>
       </div>
 
-      <div class="flex gap-4 text-sm text-gray-500 mb-4">
+      <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-4">
         <span>{{ ticket.tipo === 'BUG' ? 'Bug' : 'Función nueva' }}</span>
         <span>·</span>
         <span>{{ ticket.producto }}</span>
+        @if (ticket.modulo) {
+          <span>·</span>
+          <span>{{ ticket.modulo }}</span>
+        }
+        <span>·</span>
+        <span>{{ ticket.fecha | date: 'dd/MM/yyyy' }}</span>
         <span>·</span>
         <span>{{ ticket.creadoPor }}</span>
-        <span>·</span>
-        <span>{{ ticket.creadoEn | date: 'dd/MM/yyyy HH:mm' }}</span>
       </div>
 
-      <p class="text-gray-700 whitespace-pre-line">{{ ticket.descripcion }}</p>
+      <!-- ql-editor: reusa la tipografía de Quill (listas, negrita, etc.) para
+           el HTML ya guardado, en modo solo-lectura. -->
+      <div class="ql-editor p-0 text-gray-700" [innerHTML]="ticket.descripcion"></div>
 
       @if (opcionesEstado.length > 0) {
         <div class="flex items-center gap-2 mt-6 pt-4 border-t border-gray-100">

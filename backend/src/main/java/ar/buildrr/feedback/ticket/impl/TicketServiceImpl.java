@@ -90,6 +90,8 @@ public class TicketServiceImpl implements TicketService {
         .tipo(ticket.getTipo())
         .producto(ticket.getProducto())
         .titulo(ticket.getTitulo())
+        .modulo(ticket.getModulo())
+        .fecha(ticket.getFecha())
         .descripcion(ticket.getDescripcion())
         .estado(ticket.getEstado())
         .creadoPor(ticket.getCreadoPor())

@@ -18,6 +18,9 @@ export interface TicketRequest {
   tipo: TipoTicket;
   producto: Producto;
   titulo: string;
+  modulo?: string;
+  /** ISO yyyy-MM-dd. Si no se manda, el backend usa hoy. */
+  fecha?: string;
   descripcion?: string;
 }
 
@@ -26,6 +29,8 @@ export interface TicketResponse {
   tipo: TipoTicket;
   producto: Producto;
   titulo: string;
+  modulo?: string;
+  fecha: string;
   descripcion?: string;
   estado: EstadoTicket;
   creadoPor: string;

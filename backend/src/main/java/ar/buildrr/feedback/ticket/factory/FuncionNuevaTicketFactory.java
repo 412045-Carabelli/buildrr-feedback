@@ -6,6 +6,8 @@ import ar.buildrr.feedback.ticket.entity.TipoTicket;
 import ar.buildrr.feedback.ticket.estado.NuevoEstado;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 public class FuncionNuevaTicketFactory implements TicketFactory {
 
@@ -21,7 +23,7 @@ public class FuncionNuevaTicketFactory implements TicketFactory {
   public Ticket crear(TicketRequest request, String creadoPor) {
     // Una función nueva puede describirse solo con el título; a diferencia de
     // un bug, no es obligatorio detallar pasos de reproducción.
-    String descripcion = (request.getDescripcion() == null || request.getDescripcion().isBlank())
+    String descripcion = TicketFactoryUtil.esDescripcionVacia(request.getDescripcion())
         ? DESCRIPCION_POR_DEFECTO
         : request.getDescripcion();
 
@@ -29,6 +31,8 @@ public class FuncionNuevaTicketFactory implements TicketFactory {
         .tipo(TipoTicket.FUNCION_NUEVA)
         .producto(request.getProducto())
         .titulo(request.getTitulo())
+        .modulo(request.getModulo())
+        .fecha(request.getFecha() != null ? request.getFecha() : LocalDate.now())
         .descripcion(descripcion)
         .estado(NuevoEstado.NOMBRE)
         .creadoPor(creadoPor)

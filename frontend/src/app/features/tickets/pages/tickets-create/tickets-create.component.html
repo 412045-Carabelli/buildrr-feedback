@@ -1,43 +1,90 @@
 <p-toast></p-toast>
 
-<div class="p-6 max-w-2xl">
+<div class="p-6">
   <h1 class="text-2xl font-semibold text-gray-800 mb-6">Nuevo ticket</h1>
 
-  <form [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-4 bg-white border border-gray-200 rounded-lg p-6">
+  <form [formGroup]="form" (ngSubmit)="guardar()">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-    <div class="flex gap-4">
-      <div class="flex flex-col gap-1 flex-1">
-        <label class="text-sm font-medium text-gray-700">Tipo</label>
-        <p-select formControlName="tipo" [options]="tipos" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+      <!-- Columna izquierda: datos del ticket -->
+      <div class="flex flex-col gap-4 bg-white border border-gray-200 rounded-lg p-6">
+
+        <div class="flex gap-4">
+          <div class="flex flex-col gap-1 flex-1">
+            <label class="text-sm font-medium text-gray-700">Tipo</label>
+            <p-select formControlName="tipo" [options]="tipos" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+          </div>
+
+          <div class="flex flex-col gap-1 flex-1">
+            <label class="text-sm font-medium text-gray-700">Producto</label>
+            <p-select formControlName="producto" [options]="productos" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="titulo" class="text-sm font-medium text-gray-700">Título</label>
+          <input pInputText id="titulo" formControlName="titulo" class="w-full" />
+          @if (form.get('titulo')?.invalid && form.get('titulo')?.touched) {
+            <span class="text-xs text-red-500">Título requerido, mínimo 3 caracteres</span>
+          }
+        </div>
+
+        <div class="flex gap-4">
+          <div class="flex flex-col gap-1 flex-1">
+            <label for="modulo" class="text-sm font-medium text-gray-700">Módulo</label>
+            <input pInputText id="modulo" formControlName="modulo" placeholder="Ej: Movimientos, Facturación..." class="w-full" />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-700">Fecha</label>
+            <p-datepicker formControlName="fecha" dateFormat="dd/mm/yy" [showIcon]="true"></p-datepicker>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2 pt-2 border-t border-gray-100">
+          <label class="text-sm font-medium text-gray-700">Adjuntos</label>
+
+          <input #fileInput type="file" multiple class="hidden" (change)="agregarArchivos($event)" />
+          <p-button
+            label="Agregar archivos / capturas"
+            icon="pi pi-paperclip"
+            [outlined]="true"
+            styleClass="w-fit"
+            type="button"
+            (onClick)="fileInput.click()">
+          </p-button>
+
+          @if (archivosSeleccionados.length > 0) {
+            <ul class="flex flex-col gap-1 mt-1">
+              @for (archivo of archivosSeleccionados; track archivo.name; let i = $index) {
+                <li class="flex items-center justify-between text-sm text-gray-600 bg-gray-50 rounded px-2 py-1">
+                  <span class="truncate">{{ archivo.name }}</span>
+                  <button type="button" class="text-gray-400 hover:text-red-500 ml-2" (click)="quitarArchivo(i)">
+                    <i class="pi pi-times text-xs"></i>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
       </div>
 
-      <div class="flex flex-col gap-1 flex-1">
-        <label class="text-sm font-medium text-gray-700">Producto</label>
-        <p-select formControlName="producto" [options]="productos" optionLabel="label" optionValue="value" styleClass="w-full"></p-select>
+      <!-- Columna derecha: descripción con formato -->
+      <div class="flex flex-col bg-white border border-gray-200 rounded-lg p-6">
+        <label class="text-sm font-medium text-gray-700 mb-1">
+          Descripción
+          @if (form.get('tipo')?.value === 'BUG') {
+            <span class="text-gray-400 font-normal">— qué pasa y cómo reproducirlo</span>
+          }
+        </label>
+        <p-editor formControlName="descripcion" [style]="{ height: '360px' }"></p-editor>
       </div>
+
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label for="titulo" class="text-sm font-medium text-gray-700">Título</label>
-      <input pInputText id="titulo" formControlName="titulo" class="w-full" />
-      @if (form.get('titulo')?.invalid && form.get('titulo')?.touched) {
-        <span class="text-xs text-red-500">Título requerido, mínimo 3 caracteres</span>
-      }
-    </div>
-
-    <div class="flex flex-col gap-1">
-      <label for="descripcion" class="text-sm font-medium text-gray-700">
-        Descripción
-        @if (form.get('tipo')?.value === 'BUG') {
-          <span class="text-gray-400 font-normal">— qué pasa y cómo reproducirlo</span>
-        }
-      </label>
-      <textarea pTextarea id="descripcion" formControlName="descripcion" rows="6" class="w-full"></textarea>
-    </div>
-
-    <div class="flex justify-end gap-2 mt-2">
+    <div class="flex justify-end gap-2 mt-6">
       <p-button label="Crear ticket" type="submit" [loading]="guardando"></p-button>
     </div>
-
   </form>
 </div>
