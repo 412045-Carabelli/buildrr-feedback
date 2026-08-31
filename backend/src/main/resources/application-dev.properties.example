@@ -1,0 +1,20 @@
+# Copiar a application-dev.properties (gitignoreado) y completar con los
+# valores reales. Con el perfil "dev" activo (Run Configuration de IntelliJ
+# -> Active profiles: dev) Spring lo toma solo, sin tocar Environment variables.
+#
+# Estas claves llenan los mismos placeholders ${DB_HOST:...} etc. que usa
+# application.yml — no hace falta tocar ese archivo.
+
+DB_HOST=187.77.60.183
+DB_PORT=1433
+DB_USER=sa
+DB_PASSWORD=
+
+# Si lo dejás vacío, cae al mismo default que usa SGO en dev (ver
+# application.yml) — probar así primero, puede que en el VPS nunca lo hayan
+# cambiado.
+JWT_SECRET=
+
+# Usuario real de la dueña de FrezCo (SOLO para que el Mediator sepa
+# rutear el login hacia ella — la contraseña nunca va acá).
+FREZCO_APP_USER=

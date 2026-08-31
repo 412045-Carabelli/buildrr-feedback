@@ -1,6 +1,9 @@
 .env
 *.log
 
+# Config local de dev con credenciales reales — versionamos solo el .example
+backend/src/main/resources/application-dev.properties
+
 # Java / Maven
 target/
 *.class
