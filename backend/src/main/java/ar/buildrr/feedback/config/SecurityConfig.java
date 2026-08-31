@@ -38,7 +38,8 @@ public class SecurityConfig {
   private CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
     // TODO: reemplazar por el subdominio real (soporte.<dominio>) antes de deploy
-    config.setAllowedOriginPatterns(List.of("http://localhost:4300", "https://soporte.*"));
+    // 4200 = ng serve (dev suelto), 4300 = frontend en Docker (docker-compose.yml)
+    config.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:4300", "https://soporte.*"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true);
