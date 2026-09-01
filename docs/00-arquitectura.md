@@ -1,73 +1,66 @@
 # Arquitectura — cómo se conecta con el resto del ecosistema
 
-## Por qué no service discovery / gateway nuevo
+## Service registry vs. gateway con rutas estáticas
 
-El ecosistema Buildrr (SGO) ya tiene un `api-gateway` con `auth-service` propio detrás
-(entidades `Usuario`, `Organizacion`, `RefreshToken`, JWT HS256). Para este tamaño de
-proyecto meter un service discovery (Eureka/Consul) o registrar rutas nuevas en el
-gateway de SGO es sobre-ingeniería y además acopla el deploy de este proyecto al de SGO.
+No hay service registry (Eureka/Consul) en este ecosistema — los servicios no
+se anuncian ni se descubren solos. Hay un **API Gateway con rutas estáticas**
+(Spring Cloud Gateway, `spring.cloud.gateway.routes[N].uri=...` a mano en
+`application-{profile}.properties`). Agregar un servicio nuevo = agregar una
+línea de ruta. Nada dinámico.
 
-Se eligió el patrón más simple posible: **JWT compartido, sin gateway propio.**
+## buildr-platform: la plataforma compartida
 
-## Una sola fuente de identidad: sgo_auth
+`auth-service`, `documentos-service` y `api-gateway` salieron de
+`sistema-gestion-obras` y viven en un repo aparte, `buildr-platform`
+(WIP al momento de escribir esto, todavía no reemplaza lo que corre en
+producción — ver su propio README). SGO, FrezCo y este proyecto ("la
+tiquetera") comparten esos tres servicios.
 
-Pablo y la dueña de FrezCo son **las dos cuentas normales en `auth-service` de SGO**
-(misma base `sgo_auth`, misma tabla `usuarios`). No hay una fuente de identidad para
-SGO y otra para FrezCo — se unificó a propósito para no tener que llamar a dos
-sistemas distintos ni mantener dos formas de login.
+Este backend **ya no valida JWT ni hace login propio**. El flujo es:
 
-> Antes de esto, la dueña de FrezCo se autenticaba contra el backend propio de
-> FrezCo (login por sesión/cookie) y este proyecto le emitía un JWT propio para
-> igualar el contrato. Se descartó: significaba mantener 2 flujos de login, un
-> segundo secret JWT (`jwt.own-secret`) y un `Mediator` con un solo colleague real
-> por rama — justo lo que el proyecto evita (`CLAUDE.md`: "no interfaces con una
-> sola implementación"). Ahora la cuenta de FrezCo se creó directamente en
-> `sgo_auth` vía `POST /auth/register` (la vía segura y con las reglas de negocio
-> de SGO, no un INSERT SQL a mano).
+1. El frontend loguea directo contra el gateway: `POST {gateway}/auth/login`
+   (`{email, password}`, mismo contrato que `auth-service`). Devuelve
+   `access_token` — un JWT real de `auth-service`, este proyecto nunca lo
+   toca ni lo firma.
+2. El frontend manda ese token como `Authorization: Bearer` en cada request,
+   siempre contra el **gateway** (`/api/tickets/**`, `/api/adjuntos/**`),
+   nunca contra este backend directo.
+3. El gateway valida el JWT y reenvía la request a este backend inyectando
+   headers de identidad: `X-User-Id`, `X-Username`, `X-User-Rol`,
+   `X-Organizacion-Id`.
+4. `GatewayAuthFilter` (`auth/`) solo lee esos headers y arma un
+   `AuthenticatedUser` — no ve el JWT, no ve la contraseña. Si los headers no
+   están, la request no pasó por el gateway.
 
-## Cómo funciona
+Mismo patrón que `frezco/backend/.../GatewayAuthFilter.java`. Diferencia con
+FrezCo: ellos son tenant único (organización fija `id=1`, la validan en el
+filtro); acá no — Pablo (SGO) y la dueña de FrezCo son organizaciones
+distintas, ambas legítimas, así que `GatewayAuthFilter` no filtra por
+`organizacionId`, solo exige que los headers existan.
 
-1. El usuario (Pablo o la dueña de FrezCo) manda `{usuario, password}` a
-   `POST /auth/login` de este backend.
-2. `SgoLoginClient` reenvía la request tal cual a `{sgo.gateway-url}/auth/login`
-   y **re-emite el JWT que devuelve SGO sin tocarlo** — este backend nunca firma
-   tokens propios, solo actúa de passthrough.
-3. El frontend guarda ese token y lo manda como `Authorization: Bearer` en cada
-   request siguiente.
-4. `JwtAuthenticationFilter` valida la firma contra `jwt.secret` (el mismo que
-   usa `auth-service` de SGO) y arma un `AuthenticatedUser` con los claims
-   (`userId`, `username`, `rol`, `organizacionId`). No hay llamada de red en
-   cada request, solo verificación de firma/expiración.
+## Rutas registradas en el gateway
 
-## Prod vs. test — `sgo.gateway-url`
+Agregadas en `buildr-platform/backend1.0/api-gateway/src/main/resources/`:
 
-No hay una URL pública separada para "ambiente de test": `sgo_auth_test` solo
-existe como base de datos, alcanzable únicamente si alguien corre el
-`auth-service` de SGO en su máquina con perfil `dev`
-(`sistema-gestion-obras/backend1.0/auth-service`, puerto `8089`, ver su propio
-`application-dev.properties`). Por eso `sgo.gateway-url` es lo único que cambia
-entre ambientes:
-
-| Ambiente | `SGO_GATEWAY_URL` | Base real |
+| Ambiente | Archivo | `tickets`/`adjuntos` apuntan a |
 |---|---|---|
-| Prod (default) | `https://buildrr.cloud` | `sgo_auth` |
-| Test local | `http://localhost:8089` (con auth-service de SGO corriendo local, perfil `dev`) | `sgo_auth_test` |
-
-Ver `backend/src/main/resources/application-dev.properties.example`.
+| Dev | `application-dev.properties` | `http://localhost:8090` (backend corrido suelto desde el IDE) |
+| Prod | `application-prod.properties` | `http://tickets-service:8090` — **hostname pendiente**, este backend todavía no está desplegado en el stack compartido |
 
 ## Qué NO hace este proyecto
 
-- No tiene tabla de usuarios propia. La identidad sale entera de los claims
-  del JWT de SGO.
-- No pasa por el `api-gateway` de SGO para servir sus propias rutas. Tiene su
-  propio dominio/subdominio y su propio backend expuesto directamente (detrás
-  del proxy reverso del VPS). Sí actúa como *cliente* del login de SGO
-  (`SgoLoginClient`).
-- No firma JWT propios. Todo token que circula en este proyecto lo emitió SGO.
+- No valida JWT, no lo firma, no tiene secret propio.
+- No tiene tabla de usuarios propia. La identidad sale entera de los headers
+  que inyecta el gateway.
+- No expone su API directo al navegador en el flujo normal — el navegador
+  solo habla con el gateway. El backend sigue escuchando en su puerto propio
+  (8090) por si hace falta pegarle directo en dev/debug, pero eso no es el
+  camino de producción.
 
-## Riesgo aceptado
+## Qué falta para que esto funcione en prod
 
-Si en SGO rota `jwt.secret`, hay que rotarlo también acá (`JWT_SECRET`, variable
-de entorno compartida, sin sincronización automática). Con este volumen de
-usuarios es aceptable; si crece, ahí sí vale la pena pasar a registrar rutas en
-el `api-gateway` de SGO en vez de duplicar el login.
+Ver `buildr-platform/README.md` — el resumen es: `buildr-platform` todavía no
+comparte instancia de SQL Server/Minio con `sistema-gestion-obras` (corre
+duplicado a propósito para probarlo aislado), y este backend todavía no está
+containerizado dentro de ese stack (por eso la ruta prod del gateway apunta a
+un hostname que no existe todavía). Migrar de verdad implica esas dos cosas.

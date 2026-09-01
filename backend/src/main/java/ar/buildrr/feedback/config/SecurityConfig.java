@@ -1,6 +1,6 @@
 package ar.buildrr.feedback.config;
 
-import ar.buildrr.feedback.auth.JwtAuthenticationFilter;
+import ar.buildrr.feedback.auth.GatewayAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final GatewayAuthFilter gatewayAuthFilter;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -30,21 +30,21 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            // Preflight CORS: el navegador lo manda sin Authorization, tiene
-            // que pasar siempre o cualquier request con headers custom
-            // (Authorization, Content-Type: application/json) rebota acá
-            // antes de llegar con el token.
+            // Preflight CORS: el navegador lo manda sin headers de identidad,
+            // tiene que pasar siempre o cualquier request con headers custom
+            // rebota acá antes de llegar con la identidad ya inyectada.
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .requestMatchers("/actuator/health", "/auth/login").permitAll()
+            .requestMatchers("/actuator/health").permitAll()
             .anyRequest().authenticated())
-        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(gatewayAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
 
   private CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    // TODO: reemplazar por el subdominio real (soporte.<dominio>) antes de deploy
-    // 4200 = ng serve (dev suelto), 4300 = frontend en Docker (docker-compose.yml)
+    // Solo relevante si algo le pega directo a este backend salteando el
+    // gateway (dev/debug) — en el flujo normal el navegador habla con el
+    // api-gateway, no con este puerto.
     config.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:4300", "https://soporte.*"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));

@@ -1,13 +1,15 @@
 // Todos los interfaces/types en un único archivo — mismo criterio que
 // sistema-gestion-obras/frontend/src/app/core/models/models.ts.
 
+// Contrato real de auth-service (mismo que usa el frontend de SGO): POST
+// /auth/login contra el api-gateway, no contra este backend.
 export interface LoginRequest {
-  usuario: string;
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
-  token: string;
+  access_token: string;
 }
 
 export type TipoTicket = 'BUG' | 'FUNCION_NUEVA';

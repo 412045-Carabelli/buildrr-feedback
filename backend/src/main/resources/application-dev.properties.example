@@ -10,13 +10,8 @@ DB_PORT=1433
 DB_USER=sa
 DB_PASSWORD=
 
-# Si lo dejás vacío, cae al mismo default que usa SGO en dev (ver
-# application.yml) — probar así primero, puede que en el VPS nunca lo hayan
-# cambiado.
-JWT_SECRET=
-
-# Por default SGO_GATEWAY_URL apunta a prod (https://buildrr.cloud, base
-# sgo_auth). Para probar contra sgo_auth_test hay que levantar el
-# auth-service de SGO local con perfil dev (sistema-gestion-obras/backend1.0/auth-service,
-# puerto 8089) y descomentar esta línea:
-# SGO_GATEWAY_URL=http://localhost:8089
+# No hace falta JWT_SECRET ni URL de auth acá — este backend ya no valida
+# JWT ni loguea contra nada. Confía en los headers de identidad que inyecta
+# el api-gateway compartido de Buildr (ver GatewayAuthFilter y
+# docs/00-arquitectura.md). Para probar localmente hace falta levantar
+# buildr-platform (ver su README) y que el gateway rutee acá.

@@ -13,9 +13,10 @@ explícitamente afuera antes de agregar nada.
 
 ## Leer antes de escribir código
 
-1. [docs/00-arquitectura.md](docs/00-arquitectura.md) — por qué JWT compartido y no
-   gateway/service discovery nuevo. No proponer Eureka/Consul/API gateway propio:
-   ya se evaluó y se descartó por sobre-ingeniería para este volumen.
+1. [docs/00-arquitectura.md](docs/00-arquitectura.md) — cómo se conecta con el
+   api-gateway compartido de Buildr (`buildr-platform`). No proponer un
+   service discovery (Eureka/Consul): las rutas del gateway son estáticas
+   a propósito, ya se evaluó.
 2. [docs/01-alcance.md](docs/01-alcance.md)
 3. [docs/02-modelo-datos.md](docs/02-modelo-datos.md)
 4. [docs/03-ciclo-de-vida.md](docs/03-ciclo-de-vida.md) — transiciones válidas de estado
@@ -27,20 +28,19 @@ standalone + PrimeNG v19 · MinIO (adjuntos) · Docker Compose.
 
 ## Auth
 
-Sin tabla de usuarios propia. **Una sola** fuente de identidad: `auth-service`
-de SGO (`sgo_auth`) — Pablo y la dueña de FrezCo son las dos cuentas normales
-ahí, no hay nada que rutear entre sistemas distintos. Ver
-[docs/00-arquitectura.md](docs/00-arquitectura.md) antes de tocar `auth/`.
-`SgoLoginClient` reenvía el login y re-emite el JWT de SGO tal cual — este
-backend nunca firma tokens propios. `JwtAuthenticationFilter` valida contra
-`jwt.secret` (el mismo que SGO) y arma un `AuthenticatedUser`. No hardcodear
-el secret: viene de `JWT_SECRET`.
+Sin tabla de usuarios propia y **sin login ni validación de JWT acá**. El
+frontend loguea directo contra el api-gateway compartido de Buildr
+(`buildr-platform`), que valida el JWT e inyecta headers de identidad
+(`X-User-Id`, `X-Username`, `X-User-Rol`, `X-Organizacion-Id`).
+`GatewayAuthFilter` (`auth/`) solo lee esos headers — nunca ve JWT ni
+contraseña. Ver [docs/00-arquitectura.md](docs/00-arquitectura.md) antes de
+tocar `auth/` o las rutas del gateway.
 
-No reintroducir un Mediator/AuthColleague por "fuente de identidad": hubo uno
-(SGO + FrezCo con backend propio) y se sacó al unificar todo en `sgo_auth` —
-quedaba con una sola implementación real, justo el anti-patrón de la sección
-de abajo. Si en el futuro aparece una tercera fuente de identidad *real* (no
-una cuenta más en `sgo_auth`), ahí sí vale la pena.
+No reintroducir validación de JWT propia (secret, jjwt como dependencia,
+firmar tokens) — eso es responsabilidad del gateway, no de este backend.
+Tampoco un Mediator/AuthColleague por "fuente de identidad": Pablo (SGO) y la
+dueña de FrezCo son cuentas normales en la misma base de auth compartida, no
+dos sistemas distintos que rutear.
 
 ## Patrones aplicados (no agregar otros sin necesidad concreta)
 

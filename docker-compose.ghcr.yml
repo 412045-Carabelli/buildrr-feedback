@@ -57,8 +57,6 @@ services:
       - DB_NAME=${DB_NAME:-buildr_supp}
       - DB_USER=${DB_USER:-sa}
       - DB_PASSWORD=${DB_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - SGO_GATEWAY_URL=${SGO_GATEWAY_URL}
       - MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://minio:9000}
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}

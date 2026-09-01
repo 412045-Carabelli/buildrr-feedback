@@ -15,9 +15,10 @@ Obras; este proyecto usa una base separada (`buildr_supp`) y un bucket separado.
 
 ## Auth
 
-Sin tabla de usuarios propia. Una sola fuente de identidad: `auth-service` de
-SGO (`sgo_auth`). Pablo y la dueña de FrezCo son cuentas normales ahí — el
-login se reenvía tal cual y el JWT que devuelve SGO se re-emite sin tocar.
+Sin tabla de usuarios propia y sin login/validación de JWT acá. El frontend
+loguea directo contra el api-gateway compartido de Buildr (`buildr-platform`)
+y le pega a `/api/tickets`/`/api/adjuntos` siempre a través del gateway — éste
+valida el JWT e inyecta headers de identidad que este backend solo lee.
 Ver [docs/00-arquitectura.md](docs/00-arquitectura.md).
 
 ## Estructura
@@ -28,8 +29,8 @@ backend/       Spring Boot (un módulo por dominio)
   adjunto/       fotos/videos/docs — sube a MinIO segmentado por ticket, descarga
                  vía proxy del propio backend (bucket privado)
   registrohoras/ carga de horas por ticket (pendiente)
-  auth/          login contra sgo_auth (única fuente de identidad), filtro JWT
-  config/        CORS, MinIO, seguridad, RestClient
+  auth/          GatewayAuthFilter — confía en los headers del api-gateway
+  config/        CORS, MinIO, seguridad
 frontend/      Angular standalone
   features/      vista Pablo (crear/ver tickets) + vista admin (kanban, estados, horas)
   core/          servicios HTTP, interceptor JWT
@@ -43,7 +44,7 @@ docs/           documentación funcional y técnica
 
 | Documento | Contenido |
 |---|---|
-| [docs/00-arquitectura.md](docs/00-arquitectura.md) | por qué una sola fuente de identidad (sgo_auth), JWT compartido |
+| [docs/00-arquitectura.md](docs/00-arquitectura.md) | cómo se conecta con el api-gateway compartido de Buildr |
 | [docs/01-alcance.md](docs/01-alcance.md) | qué se construye y qué queda afuera |
 | [docs/02-modelo-datos.md](docs/02-modelo-datos.md) | esquema de tablas |
 | [docs/03-ciclo-de-vida.md](docs/03-ciclo-de-vida.md) | estados de un ticket y transiciones válidas |
@@ -53,7 +54,7 @@ Convenciones de código en [CLAUDE.md](CLAUDE.md).
 ## Puesta en marcha
 
 ```bash
-cp .env.example .env   # completar credenciales y JWT secret (igual al de SGO)
+cp .env.example .env   # completar credenciales de base y MinIO
 docker compose up --build
 ```
 

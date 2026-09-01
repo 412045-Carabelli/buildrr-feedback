@@ -1,6 +1,8 @@
 export const environment = {
   production: true,
-  // Se completa en el build de producción — mismo dominio del backend detrás
-  // del proxy reverso del VPS (ver README.md).
-  apiUrl: '/api-backend'
+  // Dominio público real del api-gateway compartido de Buildr. Las rutas
+  // /api/tickets y /api/adjuntos están agregadas en buildr-platform pero
+  // todavía apuntan a un host pendiente hasta que este backend se despliegue
+  // ahí — ver buildr-platform/backend1.0/api-gateway/application-prod.properties.
+  apiUrl: 'https://buildrr.cloud'
 };

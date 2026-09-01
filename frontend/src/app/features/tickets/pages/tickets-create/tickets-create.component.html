@@ -8,7 +8,14 @@
 
       <!-- Columna izquierda: datos del ticket -->
       <div class="flex flex-col gap-4 bg-white border border-gray-200 rounded-lg p-6">
-
+        <div class="flex flex-col gap-1">
+          <label for="titulo" class="text-sm font-medium text-gray-700">Título</label>
+          <input pInputText id="titulo" formControlName="titulo" class="w-full" />
+          @if (form.get('titulo')?.invalid && form.get('titulo')?.touched) {
+            <span class="text-xs text-red-500">Título requerido, mínimo 3 caracteres</span>
+          }
+        </div>
+        
         <div class="flex gap-4">
           <div class="flex flex-col gap-1 flex-1">
             <label class="text-sm font-medium text-gray-700">Tipo</label>
@@ -21,23 +28,16 @@
           </div>
         </div>
 
-        <div class="flex flex-col gap-1">
-          <label for="titulo" class="text-sm font-medium text-gray-700">Título</label>
-          <input pInputText id="titulo" formControlName="titulo" class="w-full" />
-          @if (form.get('titulo')?.invalid && form.get('titulo')?.touched) {
-            <span class="text-xs text-red-500">Título requerido, mínimo 3 caracteres</span>
-          }
-        </div>
 
         <div class="flex gap-4">
-          <div class="flex flex-col gap-1 flex-1">
+          <div class="flex flex-col gap-1 w-1/2">
             <label for="modulo" class="text-sm font-medium text-gray-700">Módulo</label>
             <input pInputText id="modulo" formControlName="modulo" placeholder="Ej: Movimientos, Facturación..." class="w-full" />
           </div>
 
-          <div class="flex flex-col gap-1">
+          <div class="flex flex-col gap-1 w-1/2">
             <label class="text-sm font-medium text-gray-700">Fecha</label>
-            <p-datepicker formControlName="fecha" dateFormat="dd/mm/yy" [showIcon]="true"></p-datepicker>
+            <p-datepicker formControlName="fecha" dateFormat="dd/mm/yy" [showIcon]="true" fluid></p-datepicker>
           </div>
         </div>
 
@@ -78,7 +78,7 @@
             <span class="text-gray-400 font-normal">— qué pasa y cómo reproducirlo</span>
           }
         </label>
-        <p-editor formControlName="descripcion" [style]="{ height: '360px' }"></p-editor>
+        <p-editor formControlName="descripcion" [style]="{ height: '270px' }"></p-editor>
       </div>
 
     </div>
