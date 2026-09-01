@@ -5,6 +5,7 @@ import ar.buildrr.feedback.ticket.TicketService;
 import ar.buildrr.feedback.ticket.dto.CambiarEstadoRequest;
 import ar.buildrr.feedback.ticket.dto.TicketRequest;
 import ar.buildrr.feedback.ticket.dto.TicketResponse;
+import ar.buildrr.feedback.ticket.entity.Producto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +29,10 @@ public class TicketController {
   }
 
   @GetMapping
-  public ResponseEntity<List<TicketResponse>> listar() {
-    return ResponseEntity.ok(service.listar());
+  public ResponseEntity<List<TicketResponse>> listar(
+      @RequestParam(required = false) Producto producto,
+      @AuthenticationPrincipal AuthenticatedUser usuario) {
+    return ResponseEntity.ok(service.listar(usuario.username(), producto));
   }
 
   @GetMapping("/{id}")

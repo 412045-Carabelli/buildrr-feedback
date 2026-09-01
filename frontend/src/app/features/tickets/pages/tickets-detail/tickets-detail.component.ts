@@ -10,6 +10,7 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TicketsService } from '../../../../services/tickets/tickets.service';
 import { AdjuntosService } from '../../../../services/adjuntos/adjuntos.service';
+import { AplicacionSeleccionadaService } from '../../../../services/aplicaciones/aplicacion-seleccionada.service';
 import { AdjuntoResponse, EstadoTicket, TicketResponse } from '../../../../core/models/models';
 
 // Mismas transiciones que ticket/estado/ en el backend — ver docs/03-ciclo-de-vida.md.
@@ -38,8 +39,13 @@ export class TicketsDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private ticketsService: TicketsService,
     private adjuntosService: AdjuntosService,
+    public aplicacionSeleccionadaService: AplicacionSeleccionadaService,
     private messageService: MessageService
   ) {}
+
+  get puedeGestionar(): boolean {
+    return !!this.ticket && this.aplicacionSeleccionadaService.esAdminDe(this.ticket.producto);
+  }
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));

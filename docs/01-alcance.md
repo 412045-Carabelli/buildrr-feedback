@@ -4,6 +4,9 @@
 
 - Alta de tickets por parte de Pablo: tipo (BUG o FUNCION_NUEVA), producto afectado
   (SGO o FRESCO), título, descripción, adjuntos (fotos, videos, documentos).
+- Selector de aplicación persistente en el navbar (`usuario_aplicacion`
+  decide qué opciones ve cada usuario) — determina a qué producto se cargan
+  los bugs nuevos y qué tickets se ven en el dashboard.
 - Ciclo de vida del ticket con 4 estados: NUEVO → EN_PROGRESO → TESTING → COMPLETADO.
   Desde TESTING se puede volver a EN_PROGRESO si algo no funciona (ver
   [03-ciclo-de-vida.md](03-ciclo-de-vida.md)).
@@ -23,9 +26,12 @@
 - Notificaciones automáticas (email/push) al cambiar de estado.
 - Comentarios tipo hilo/chat dentro del ticket — solo una nota del admin por
   cambio de estado relevante.
-- Roles múltiples o gestión de permisos — tres actores fijos: Pablo (cliente),
-  la dueña de FrezCo (cliente) y Gino (admin). Los tres son cuentas normales
-  en `sgo_auth`, ver [00-arquitectura.md](00-arquitectura.md).
+- Roles genéricos/configurables desde una UI — el control de acceso es
+  `usuario_aplicacion` (CLIENTE/ADMIN por producto, ver
+  [02-modelo-datos.md](02-modelo-datos.md)), seedeado a mano por migración.
+  Tres actores fijos hoy: Pablo (cliente de SGO), la dueña de FrezCo (cliente
+  de FrezCo) y Gino (admin de ambos). Sin pantalla para que un admin le dé
+  acceso a alguien nuevo — se agrega con una fila en la base.
 - Priorización/SLA.
 - Búsqueda o reportes avanzados.
 

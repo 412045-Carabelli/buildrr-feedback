@@ -2,6 +2,7 @@ package ar.buildrr.feedback.handler;
 
 import ar.buildrr.feedback.adjunto.exception.AdjuntoInvalidoException;
 import ar.buildrr.feedback.adjunto.exception.AdjuntoNotFoundException;
+import ar.buildrr.feedback.ticket.exception.AccesoDenegadoException;
 import ar.buildrr.feedback.ticket.exception.TicketInvalidoException;
 import ar.buildrr.feedback.ticket.exception.TicketNotFoundException;
 import ar.buildrr.feedback.ticket.exception.TransicionInvalidaException;
@@ -31,6 +32,11 @@ public class RestExceptionHandler {
   @ExceptionHandler({TicketInvalidoException.class, TransicionInvalidaException.class, AdjuntoInvalidoException.class})
   public ResponseEntity<ErrorApi> handleInvalido(RuntimeException ex, HttpServletRequest request) {
     return build(400, ex.getMessage(), request);
+  }
+
+  @ExceptionHandler(AccesoDenegadoException.class)
+  public ResponseEntity<ErrorApi> handleAccesoDenegado(AccesoDenegadoException ex, HttpServletRequest request) {
+    return build(403, ex.getMessage(), request);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -18,6 +18,31 @@ Base `buildr_supp`, SQL Server, misma instancia (VPS) que SGO.
 | creado_en | DATETIME2 | |
 | ultima_actualizacion | DATETIME2 | |
 
+## usuario_aplicacion
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| id | BIGINT IDENTITY PK | |
+| username | NVARCHAR(100) | mismo username que viene en `X-Username` del gateway |
+| producto | NVARCHAR(20) | `SGO` \| `FRESCO` — a qué aplicación puede cargar/ver tickets |
+| rol | NVARCHAR(20) | `CLIENTE` (crea/ve los propios) \| `ADMIN` (gestiona el ciclo de vida de esos tickets) |
+
+Único (`username`, `producto`). No es una tabla de usuarios — es un control de
+acceso por producto. No tiene email/password/nombre, nada de eso vive acá
+(sigue en `auth-service`). Determina:
+
+- Qué aplicaciones puede elegir el usuario en el selector del navbar
+  (`GET /api/usuario-aplicacion/mis-aplicaciones`).
+- A qué producto puede cargar un ticket nuevo (`POST /api/tickets` valida que
+  el `producto` del request esté en esta tabla para ese `username`).
+- Quién puede cambiar el estado de un ticket (`PATCH /api/tickets/{id}/estado`
+  exige rol `ADMIN` para el `producto` de ese ticket puntual).
+- Qué tickets ve en el listado (`GET /api/tickets` sin filtro devuelve todos
+  los productos accesibles; con `?producto=X` sólo ese, si tiene acceso).
+
+Seed inicial (`V4__usuario_aplicacion.sql`): Pablo cliente de SGO, la dueña de
+FrezCo cliente de FrezCo, Gino admin de ambos.
+
 ## adjunto
 
 | Columna | Tipo | Notas |

@@ -45,6 +45,13 @@ export interface CambiarEstadoRequest {
   nota?: string;
 }
 
+export type RolAplicacion = 'CLIENTE' | 'ADMIN';
+
+export interface AplicacionAccesoResponse {
+  producto: Producto;
+  rol: RolAplicacion;
+}
+
 export type TipoAdjunto = 'FOTO' | 'VIDEO' | 'DOCUMENTO';
 
 export interface AdjuntoResponse {

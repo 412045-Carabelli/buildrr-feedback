@@ -30,7 +30,7 @@
            el HTML ya guardado, en modo solo-lectura. -->
       <div class="ql-editor p-0 text-gray-700" [innerHTML]="ticket.descripcion"></div>
 
-      @if (opcionesEstado.length > 0) {
+      @if (puedeGestionar && opcionesEstado.length > 0) {
         <div class="flex items-center gap-2 mt-6 pt-4 border-t border-gray-100">
           <p-select
             [(ngModel)]="estadoDestino"

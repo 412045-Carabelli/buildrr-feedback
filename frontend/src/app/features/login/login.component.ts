@@ -7,6 +7,7 @@ import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from '../../services/auth/auth.service';
+import { AplicacionSeleccionadaService } from '../../services/aplicaciones/aplicacion-seleccionada.service';
 
 @Component({
   selector: 'app-login',
@@ -19,7 +20,12 @@ export class LoginComponent {
   cargando = false;
   error = '';
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private aplicacionSeleccionadaService: AplicacionSeleccionadaService,
+    private router: Router
+  ) {
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]]
@@ -36,8 +42,10 @@ export class LoginComponent {
     this.error = '';
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
-        this.cargando = false;
-        this.router.navigate(['/tickets']);
+        this.aplicacionSeleccionadaService.cargar().subscribe(() => {
+          this.cargando = false;
+          this.router.navigate(['/tickets']);
+        });
       },
       error: () => {
         this.cargando = false;

@@ -15,6 +15,17 @@
       <span class="text-lg font-semibold text-gray-800">Buildrr Feedback</span>
     </div>
 
+    @if ((aplicacionSeleccionadaService.aplicaciones$ | async)?.length) {
+      <p-select
+        [ngModel]="aplicacionSeleccionadaService.seleccionada$ | async"
+        (ngModelChange)="cambiarAplicacion($event)"
+        [options]="opcionesAplicacion"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-64">
+      </p-select>
+    }
+
     <div class="flex items-center">
       <div
         class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center cursor-pointer select-none ring-2 ring-indigo-100 hover:ring-indigo-300 hover:bg-indigo-700 transition-all"

@@ -12,6 +12,8 @@ import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { TicketsService } from '../../../../services/tickets/tickets.service';
 import { AdjuntosService } from '../../../../services/adjuntos/adjuntos.service';
+import { AplicacionSeleccionadaService } from '../../../../services/aplicaciones/aplicacion-seleccionada.service';
+import { NOMBRE_PRODUCTO } from '../../../../core/constants/producto-labels';
 
 @Component({
   selector: 'app-tickets-create',
@@ -39,26 +41,26 @@ export class TicketsCreateComponent {
     { label: 'Función nueva', value: 'FUNCION_NUEVA' }
   ];
 
-  productos = [
-    { label: 'Sistema de Gestión de Obras', value: 'SGO' },
-    { label: 'FrezCo', value: 'FRESCO' }
-  ];
-
   constructor(
     private fb: FormBuilder,
     private ticketsService: TicketsService,
     private adjuntosService: AdjuntosService,
+    private aplicacionSeleccionadaService: AplicacionSeleccionadaService,
     private router: Router,
     private messageService: MessageService
   ) {
     this.form = this.fb.group({
       tipo: ['BUG', [Validators.required]],
-      producto: ['SGO', [Validators.required]],
       titulo: ['', [Validators.required, Validators.minLength(3)]],
       modulo: [''],
       fecha: [new Date(), [Validators.required]],
       descripcion: ['']
     });
+  }
+
+  get nombreAplicacionSeleccionada(): string {
+    const producto = this.aplicacionSeleccionadaService.seleccionadaActual;
+    return producto ? NOMBRE_PRODUCTO[producto] : '';
   }
 
   agregarArchivos(event: Event): void {
@@ -79,9 +81,15 @@ export class TicketsCreateComponent {
       return;
     }
 
+    const producto = this.aplicacionSeleccionadaService.seleccionadaActual;
+    if (!producto) {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No tenés ninguna aplicación asignada' });
+      return;
+    }
+
     this.guardando = true;
     const { fecha, ...resto } = this.form.getRawValue();
-    const payload = { ...resto, fecha: this.aIsoDate(fecha) };
+    const payload = { ...resto, producto, fecha: this.aIsoDate(fecha) };
 
     this.ticketsService.crear(payload).subscribe({
       next: (ticket) => this.subirArchivosYNavegar(ticket.id),
