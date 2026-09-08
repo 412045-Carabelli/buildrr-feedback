@@ -3,6 +3,9 @@ package ar.buildrr.feedback.ticket.controller;
 import ar.buildrr.feedback.auth.AuthenticatedUser;
 import ar.buildrr.feedback.ticket.TicketService;
 import ar.buildrr.feedback.ticket.dto.CambiarEstadoRequest;
+import ar.buildrr.feedback.ticket.dto.EditarTicketRequest;
+import ar.buildrr.feedback.ticket.dto.EstadisticasTicketResponse;
+import ar.buildrr.feedback.ticket.dto.HistorialEstadoResponse;
 import ar.buildrr.feedback.ticket.dto.TicketRequest;
 import ar.buildrr.feedback.ticket.dto.TicketResponse;
 import ar.buildrr.feedback.ticket.entity.Producto;
@@ -31,8 +34,16 @@ public class TicketController {
   @GetMapping
   public ResponseEntity<List<TicketResponse>> listar(
       @RequestParam(required = false) Producto producto,
+      @RequestParam(required = false) List<String> estado,
       @AuthenticationPrincipal AuthenticatedUser usuario) {
-    return ResponseEntity.ok(service.listar(usuario.username(), producto));
+    return ResponseEntity.ok(service.listar(usuario.username(), producto, estado));
+  }
+
+  @GetMapping("/stats")
+  public ResponseEntity<EstadisticasTicketResponse> estadisticas(
+      @RequestParam(required = false) Producto producto,
+      @AuthenticationPrincipal AuthenticatedUser usuario) {
+    return ResponseEntity.ok(service.estadisticas(usuario.username(), producto));
   }
 
   @GetMapping("/{id}")
@@ -46,5 +57,18 @@ public class TicketController {
       @Valid @RequestBody CambiarEstadoRequest request,
       @AuthenticationPrincipal AuthenticatedUser usuario) {
     return ResponseEntity.ok(service.cambiarEstado(id, request, usuario.username()));
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<TicketResponse> editar(
+      @PathVariable Long id,
+      @Valid @RequestBody EditarTicketRequest request,
+      @AuthenticationPrincipal AuthenticatedUser usuario) {
+    return ResponseEntity.ok(service.editar(id, request, usuario.username()));
+  }
+
+  @GetMapping("/{id}/historial")
+  public ResponseEntity<List<HistorialEstadoResponse>> historial(@PathVariable Long id) {
+    return ResponseEntity.ok(service.historial(id));
   }
 }

@@ -15,6 +15,6 @@ public class NuevoEstado implements EstadoTicket {
 
   @Override
   public Set<String> transicionesPermitidas() {
-    return Set.of(EnProgresoEstado.NOMBRE);
+    return Set.of(EnProgresoEstado.NOMBRE, AnuladoEstado.NOMBRE);
   }
 }

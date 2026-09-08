@@ -10,6 +10,11 @@ DB_PORT=1433
 DB_USER=sa
 DB_PASSWORD=
 
+# Adjuntos van al documentos-service compartido de SGO, no a un bucket propio
+# (ver AdjuntoServiceImpl). Default ya apunta a localhost:8087, solo
+# descomentar si corre en otro lado.
+# DOCUMENTOS_SERVICE_URL=http://localhost:8087/api/documentos
+
 # No hace falta JWT_SECRET ni URL de auth acá — este backend ya no valida
 # JWT ni loguea contra nada. Confía en los headers de identidad que inyecta
 # el api-gateway compartido de Buildr (ver GatewayAuthFilter y

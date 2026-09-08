@@ -20,6 +20,8 @@ public class AdjuntoResponse {
   private Long historialEstadoId;
   private TipoAdjunto tipo;
   private String nombreOriginal;
+  /** Para que el frontend decida si lo abre en una pestaña nueva (imagen/PDF) o fuerza la descarga. */
+  private String contentType;
   private String subidoPor;
   private Instant subidoEn;
 

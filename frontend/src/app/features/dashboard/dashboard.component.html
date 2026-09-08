@@ -1,0 +1,80 @@
+<p-toast></p-toast>
+
+<app-layout-header type="list" title="Dashboard" subtitle="Métricas y accesos rápidos de la tiquetera"></app-layout-header>
+
+<div class="p-6 space-y-6">
+  @if (cargando) {
+    <p class="text-gray-400">Cargando...</p>
+  } @else if (stats) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <app-kpi-card
+        title="Total"
+        icon="pi pi-list"
+        color="indigo"
+        [value]="stats.total"
+        [clickable]="true"
+        (click)="irATickets()">
+      </app-kpi-card>
+
+      <app-kpi-card
+        title="Pendientes"
+        description="Nuevo + en progreso + testing"
+        icon="pi pi-clock"
+        color="amber"
+        [value]="stats.pendientes"
+        [clickable]="true"
+        (click)="irATickets(['NUEVO', 'EN_PROGRESO', 'TESTING'])">
+      </app-kpi-card>
+
+      <app-kpi-card
+        title="En desarrollo"
+        icon="pi pi-cog"
+        color="blue"
+        [value]="stats.enProgreso"
+        [clickable]="true"
+        (click)="irATickets(['EN_PROGRESO'])">
+      </app-kpi-card>
+
+      <app-kpi-card
+        title="Completados"
+        icon="pi pi-check-circle"
+        color="green"
+        [value]="stats.completados"
+        [clickable]="true"
+        (click)="irATickets(['COMPLETADO'])">
+      </app-kpi-card>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <app-kpi-card
+        title="Nuevos"
+        description="Todavía sin arrancar"
+        icon="pi pi-inbox"
+        color="rose"
+        [value]="stats.nuevos"
+        [clickable]="true"
+        (click)="irATickets(['NUEVO'])">
+      </app-kpi-card>
+
+      <app-kpi-card
+        title="En testing"
+        description="Esperando devolución"
+        icon="pi pi-search"
+        color="violet"
+        [value]="stats.testing"
+        [clickable]="true"
+        (click)="irATickets(['TESTING'])">
+      </app-kpi-card>
+
+      <app-kpi-card
+        title="Usuarios"
+        description="Gestionar accesos por producto"
+        icon="pi pi-users"
+        color="gray"
+        value="→"
+        [clickable]="true"
+        (click)="irAUsuarios()">
+      </app-kpi-card>
+    </div>
+  }
+</div>

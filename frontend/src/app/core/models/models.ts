@@ -12,9 +12,27 @@ export interface LoginResponse {
   access_token: string;
 }
 
+// Mismo contrato que auth-service (ChangePasswordRequest) — POST
+// /auth/change-password contra el gateway, exige X-User-Id (lo inyecta el
+// gateway a partir del Bearer, no lo mandamos nosotros).
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+// TEMPORAL — pedido explícito para cambiar sin loguearse mientras no hay
+// cuenta usable. Ver ResetPasswordSinLoginRequest en auth-service, sacar
+// cuando vuelva a exigirse login (issue: revertir a ChangePasswordRequest).
+export interface ResetPasswordSinLoginRequest {
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export type TipoTicket = 'BUG' | 'FUNCION_NUEVA';
 export type Producto = 'SGO' | 'FRESCO';
-export type EstadoTicket = 'NUEVO' | 'EN_PROGRESO' | 'TESTING' | 'COMPLETADO';
+export type EstadoTicket = 'NUEVO' | 'EN_PROGRESO' | 'TESTING' | 'COMPLETADO' | 'ANULADO';
 
 export interface TicketRequest {
   tipo: TipoTicket;
@@ -24,6 +42,22 @@ export interface TicketRequest {
   /** ISO yyyy-MM-dd. Si no se manda, el backend usa hoy. */
   fecha?: string;
   descripcion?: string;
+}
+
+/** No reasigna tipo ni producto — ver EditarTicketRequest en el backend. */
+export interface EditarTicketRequest {
+  titulo: string;
+  modulo?: string;
+  fecha?: string;
+  descripcion?: string;
+}
+
+export interface HistorialEstadoResponse {
+  estadoAnterior?: EstadoTicket;
+  estadoNuevo: EstadoTicket;
+  nota?: string;
+  cambiadoPor: string;
+  cambiadoEn: string;
 }
 
 export interface TicketResponse {
@@ -52,6 +86,28 @@ export interface AplicacionAccesoResponse {
   rol: RolAplicacion;
 }
 
+export interface EstadisticasTicketResponse {
+  total: number;
+  nuevos: number;
+  enProgreso: number;
+  testing: number;
+  completados: number;
+  pendientes: number;
+}
+
+export interface UsuarioAplicacionResponse {
+  id: number;
+  username: string;
+  producto: Producto;
+  rol: RolAplicacion;
+}
+
+export interface AltaUsuarioAplicacionRequest {
+  username: string;
+  producto: Producto;
+  rol: RolAplicacion;
+}
+
 export type TipoAdjunto = 'FOTO' | 'VIDEO' | 'DOCUMENTO';
 
 export interface AdjuntoResponse {
@@ -60,6 +116,7 @@ export interface AdjuntoResponse {
   historialEstadoId?: number;
   tipo: TipoAdjunto;
   nombreOriginal: string;
+  contentType?: string;
   subidoPor: string;
   subidoEn: string;
   urlDescarga: string;

@@ -17,6 +17,6 @@ public class TestingEstado implements EstadoTicket {
   public Set<String> transicionesPermitidas() {
     // Desde TESTING se puede confirmar (COMPLETADO) o volver atrás si no
     // funciona (EN_PROGRESO) — ver docs/03-ciclo-de-vida.md.
-    return Set.of(CompletadoEstado.NOMBRE, EnProgresoEstado.NOMBRE);
+    return Set.of(CompletadoEstado.NOMBRE, EnProgresoEstado.NOMBRE, AnuladoEstado.NOMBRE);
   }
 }

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
@@ -12,7 +12,7 @@ import { AplicacionSeleccionadaService } from '../../services/aplicaciones/aplic
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputTextModule, PasswordModule, ButtonModule, MessageModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, InputTextModule, PasswordModule, ButtonModule, MessageModule],
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
@@ -42,9 +42,16 @@ export class LoginComponent {
     this.error = '';
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
-        this.aplicacionSeleccionadaService.cargar().subscribe(() => {
-          this.cargando = false;
-          this.router.navigate(['/tickets']);
+        this.aplicacionSeleccionadaService.cargar().subscribe({
+          next: (aplicaciones) => {
+            this.cargando = false;
+            const esAdmin = aplicaciones.some((a) => a.rol === 'ADMIN');
+            this.router.navigate([esAdmin ? '/dashboard' : '/tickets']);
+          },
+          error: () => {
+            this.cargando = false;
+            this.error = 'Ingresaste, pero no se pudieron cargar tus aplicaciones';
+          }
         });
       },
       error: () => {

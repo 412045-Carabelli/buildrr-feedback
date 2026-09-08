@@ -2,9 +2,13 @@
 
 ```
 NUEVO ──────────────► EN_PROGRESO ──────────────► TESTING ──────────────► COMPLETADO
-  (Pablo crea)          (admin arranca)          (admin marca listo)      (Pablo o admin confirma)
-                              ▲                         │
-                              └─────── no funciona ──────┘
+  ▲   (Pablo crea)      │   (admin arranca)      │   (admin marca listo)      (Pablo o admin confirma)
+  │                     │         ▲              │         │                       │
+  │                     │         └── no funciona┘         │                       │
+  │                     ▼                                  ▼                       │
+  │                 ANULADO ◄─────────────────────────────┘                       │
+  │              (admin, terminal)                                                 │
+  └──────────────────────── reabrir ciclo (confirma el usuario) ────────────────────┘
 ```
 
 ## Transiciones válidas
@@ -12,10 +16,19 @@ NUEVO ──────────────► EN_PROGRESO ─────�
 | Desde | Hacia | Quién | Nota |
 |---|---|---|---|
 | NUEVO | EN_PROGRESO | admin | arranca a trabajar el ticket |
+| NUEVO | ANULADO | admin | anular, no se va a hacer |
 | EN_PROGRESO | TESTING | admin | deja nota/captura de qué se hizo |
+| EN_PROGRESO | ANULADO | admin | anular |
 | TESTING | COMPLETADO | admin o Pablo | confirma que anda |
 | TESTING | EN_PROGRESO | admin o Pablo | "no funciona", vuelve atrás con nota de por qué |
-| cualquiera | NUEVO | — | no existe, no se retrocede hasta el inicio |
+| TESTING | ANULADO | admin | anular |
+| COMPLETADO | NUEVO | admin | "reabrir ciclo" — el frontend pide confirmación antes de mandarla, el backend solo valida que sea una transición permitida |
+
+`ANULADO` es terminal (no se reabre, a diferencia de `COMPLETADO`) — pedido
+explícito del owner para cancelar tickets que no se van a hacer. No hay
+endpoint propio: es la misma transición de `PATCH /api/tickets/{id}/estado`
+que cualquier otro cambio de estado, el frontend simplemente la expone como
+un botón "Anular" en vez de en la lista de "siguiente paso".
 
 No hay estado de "cancelado/descartado" en el alcance inicial — si hace falta,
 se agrega después.

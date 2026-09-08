@@ -28,9 +28,10 @@ public class Adjunto {
   private TipoAdjunto tipo;
 
   /**
-   * Object key dentro del bucket MinIO, NO una URL pública — el bucket es
-   * privado. Formato: ticket/{ticketId}/{uuid}-{nombreArchivo}. Se sirve con
-   * URL prefirmada (ver AdjuntoServiceImpl.urlDescarga).
+   * `id_documento` en documentos-service (el servicio compartido de SGO que
+   * guarda el archivo de verdad) — NO una URL ni un object key propio, este
+   * backend no tiene bucket. La descarga es un proxy (ver
+   * AdjuntoServiceImpl.descargar / AdjuntoController).
    */
   @Column(nullable = false, length = 500)
   private String url;

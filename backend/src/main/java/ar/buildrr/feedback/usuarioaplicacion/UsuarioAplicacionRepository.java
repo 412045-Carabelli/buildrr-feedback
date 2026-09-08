@@ -9,5 +9,7 @@ import java.util.Optional;
 public interface UsuarioAplicacionRepository extends JpaRepository<UsuarioAplicacion, Long> {
   List<UsuarioAplicacion> findByUsername(String username);
 
+  List<UsuarioAplicacion> findByProducto(Producto producto);
+
   Optional<UsuarioAplicacion> findByUsernameAndProducto(String username, Producto producto);
 }

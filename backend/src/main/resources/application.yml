@@ -23,15 +23,13 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
 
-minio:
-  # Mismo MinIO que ya usa el stack SGO (documentos-service), bucket propio
-  # "buildrr-feedback" separado del de SGO. Credenciales: mismo valor que
-  # sistema-gestion-obras/backend1.0/documentos-service/application-prod.properties
-  # (MINIO_ROOT_USER/PASSWORD del docker-compose de SGO).
-  endpoint: ${MINIO_ENDPOINT:http://minio:9000}
-  access-key: ${MINIO_ACCESS_KEY:minioadmin}
-  secret-key: ${MINIO_SECRET_KEY:minioadmin}
-  bucket: buildrr-feedback
+documentos:
+  # No maneja storage propio — los adjuntos van al documentos-service
+  # compartido de SGO (mismo MinIO, servicio distinto), identificados con
+  # producto=BUILDRR_FEEDBACK y tipo_asociado=ticket. Ver AdjuntoServiceImpl
+  # y strategy/BuildrrFeedbackDocumentoStrategy del lado de documentos-service.
+  service:
+    url: ${DOCUMENTOS_SERVICE_URL:http://localhost:8087/api/documentos}
 
 management:
   endpoints:

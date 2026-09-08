@@ -24,7 +24,8 @@ explícitamente afuera antes de agregar nada.
 ## Stack
 
 Spring Boot 3.3.5 (Java 17) · Spring Data JPA · SQL Server · Flyway · Angular 19
-standalone + PrimeNG v19 · MinIO (adjuntos) · Docker Compose.
+standalone + PrimeNG v19 · Docker Compose. Adjuntos van al `documentos-service`
+compartido de SGO (sin MinIO ni bucket propio acá — ver "Adjuntos" abajo).
 
 ## Auth
 
@@ -52,17 +53,25 @@ dos sistemas distintos que rutear.
   vida, cada uno declara a qué estados puede moverse. `EstadoTicketResolver`
   valida transiciones sin switch. Agregar un estado nuevo (si algún día hace
   falta "cancelado") es agregar una clase `@Component`, no tocar el service.
+- **Factory Method** (`usuarioaplicacion/factory/`) — mismo patrón que el de
+  tickets, pero por `RolAplicacion` (CLIENTE/ADMIN) para el alta de accesos
+  (`POST /api/admin/usuarios-aplicacion`). No es un patrón nuevo, es el mismo
+  Factory Method aplicado a otra jerarquía.
 
-## Adjuntos / MinIO
+## Adjuntos — documentos-service compartido
 
-Un bucket propio (`buildrr-feedback`, mismo servidor MinIO que SGO), segmentado
-por ticket con el **object key** (`ticket/{ticketId}/{uuid}-{nombre}`), no por
-bucket — un bucket por ticket no escala ni tiene sentido con este volumen. El
-bucket es privado: la descarga es un proxy de este backend
-(`GET /api/adjuntos/{id}/descargar`, mismo patrón que `documentos-service` de
-SGO), nunca una URL directa/prefirmada a MinIO — su hostname interno
-(`minio:9000`) no es alcanzable desde el navegador. Ver
-[docs/02-modelo-datos.md](docs/02-modelo-datos.md).
+Sin storage propio: los adjuntos se suben al `documentos-service` de SGO
+(`services.documentos.url`, config `documentos.service.url` acá) como
+`producto=BUILDRR_FEEDBACK`, `tipo_asociado=ticket`, `id_asociado={ticketId}`.
+Del lado de `documentos-service` eso se resuelve con un **Strategy**
+(`strategy/BuildrrFeedbackDocumentoStrategy`, junto a `SgoDocumentoStrategy` y
+`FrezcoDocumentoStrategy`) que arma el prefijo de carpeta y valida acceso por
+producto — agregar un producto nuevo ahí es agregar una clase, no tocar
+`DocumentoService`. `Adjunto.url` guarda el `id_documento` remoto, no un
+object key propio. La descarga sigue siendo un proxy de este backend
+(`GET /api/adjuntos/{id}/descargar`) que a su vez pega a
+`documentos-service/{id}/view` — nunca una URL directa a MinIO desde el
+navegador. Ver [docs/02-modelo-datos.md](docs/02-modelo-datos.md).
 
 ## Convenciones (mismo estilo que sistema-gestion-obras y frezco)
 

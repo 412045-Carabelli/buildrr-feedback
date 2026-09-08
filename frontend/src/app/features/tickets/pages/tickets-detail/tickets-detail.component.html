@@ -1,85 +1,162 @@
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
-<div class="p-6 max-w-3xl">
-  <a routerLink="/tickets" class="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1 mb-4">
-    <i class="pi pi-arrow-left text-xs"></i> Volver
-  </a>
-
-  @if (ticket) {
-    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-4">
-      <div class="flex items-start justify-between mb-2">
-        <h1 class="text-2xl font-semibold text-gray-800">{{ ticket.titulo }}</h1>
-        <p-tag [severity]="severityEstado(ticket.estado)" [value]="ticket.estado"></p-tag>
-      </div>
-
-      <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-4">
-        <span>{{ ticket.tipo === 'BUG' ? 'Bug' : 'Función nueva' }}</span>
-        <span>·</span>
-        <span>{{ ticket.producto }}</span>
-        @if (ticket.modulo) {
-          <span>·</span>
-          <span>{{ ticket.modulo }}</span>
-        }
-        <span>·</span>
-        <span>{{ ticket.fecha | date: 'dd/MM/yyyy' }}</span>
-        <span>·</span>
-        <span>{{ ticket.creadoPor }}</span>
-      </div>
-
-      <!-- ql-editor: reusa la tipografía de Quill (listas, negrita, etc.) para
-           el HTML ya guardado, en modo solo-lectura. -->
-      <div class="ql-editor p-0 text-gray-700" [innerHTML]="ticket.descripcion"></div>
-
-      @if (puedeGestionar && opcionesEstado.length > 0) {
-        <div class="flex items-center gap-2 mt-6 pt-4 border-t border-gray-100">
-          <p-select
-            [(ngModel)]="estadoDestino"
-            [options]="opcionesEstado"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Cambiar estado a...">
-          </p-select>
-          <p-button
-            label="Aplicar"
-            [disabled]="!estadoDestino"
-            [loading]="cambiandoEstado"
-            (onClick)="cambiarEstado()">
-          </p-button>
-        </div>
+@if (ticket) {
+  <app-layout-header type="detail" [title]="ticket.titulo" [subtitle]="labelProducto(ticket.producto) + ' · ' + (ticket.tipo === 'BUG' ? 'Bug' : 'Función nueva')">
+    <p-tag header-title-meta [severity]="severityEstado(ticket.estado)" [value]="labelEstado(ticket.estado)"></p-tag>
+    <div header-actions class="flex items-center gap-2">
+      @if (puedeEditar) {
+        <a [routerLink]="['/tickets', ticket.id, 'editar']">
+          <p-button icon="pi pi-pencil" severity="secondary" pTooltip="Editar" tooltipPosition="bottom"></p-button>
+        </a>
       }
+      @if (puedeAnular) {
+        <p-button icon="pi pi-ban" severity="danger" pTooltip="Anular" tooltipPosition="bottom" (onClick)="confirmarAnular()"></p-button>
+      }
+      <p-button label="Volver" icon="pi pi-arrow-left" routerLink="/tickets"></p-button>
+    </div>
+  </app-layout-header>
+}
+
+<div class="p-6 w-full space-y-4">
+  @if (ticket) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <app-kpi-card title="Módulo" icon="pi pi-th-large" color="indigo" [value]="ticket.modulo || '—'"></app-kpi-card>
+      <app-kpi-card title="Fecha" icon="pi pi-calendar" color="blue" [value]="(ticket.fecha | date: 'dd/MM/yyyy') || '—'"></app-kpi-card>
+      <app-kpi-card title="Creado por" icon="pi pi-user" color="gray" [value]="ticket.creadoPor"></app-kpi-card>
+
+      <!-- "Siguiente paso" a la altura de los KPI, no como sección aparte. -->
+      <div class="w-full h-full rounded-xl shadow-md p-6 flex flex-col justify-center gap-2 bg-white" style="border-left: 6px solid #059669;">
+        @if (puedeGestionar && acciones.length > 0) {
+          <span class="text-sm font-poppins font-semibold text-gray-600 mb-1">Siguiente paso</span>
+          @for (accion of acciones; track accion.destino) {
+            <p-button
+              [label]="accion.label"
+              [icon]="accion.icon"
+              [outlined]="!accion.primaria"
+              [severity]="accion.primaria ? undefined : 'secondary'"
+              [loading]="cambiandoEstado"
+              size="small"
+              styleClass="w-full justify-center"
+              (onClick)="ejecutarAccion(accion)">
+            </p-button>
+          }
+        } @else {
+          <span class="text-sm font-poppins font-semibold text-gray-600">Ciclo</span>
+          <span class="text-sm text-gray-400">{{ ticket.estado === 'ANULADO' ? 'Anulado' : 'Sin acciones disponibles' }}</span>
+        }
+      </div>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-lg p-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">Adjuntos</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-10 gap-4 items-stretch min-h-[50vh]">
+      <!-- Descripción 60% -->
+      <div class="lg:col-span-6 bg-white border border-gray-200 rounded-lg p-6 flex flex-col">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Descripción</h2>
+        <!-- ql-editor: reusa la tipografía de Quill (listas, negrita, etc.) para
+             el HTML ya guardado, en modo solo-lectura. -->
+        <div class="ql-editor p-0 text-gray-700 flex-1" [innerHTML]="ticket.descripcion"></div>
+      </div>
 
-      <p-fileUpload
-        mode="basic"
-        chooseLabel="Subir foto/video/documento"
-        [customUpload]="true"
-        [auto]="true"
-        (uploadHandler)="subirAdjunto($event)"
-        styleClass="mb-4">
-      </p-fileUpload>
-
-      @if (adjuntos.length === 0) {
-        <p class="text-sm text-gray-400">Sin adjuntos todavía.</p>
-      } @else {
-        <ul class="flex flex-col gap-2">
-          @for (adjunto of adjuntos; track adjunto.id) {
-            <li class="flex items-center justify-between border border-gray-100 rounded-md px-3 py-2">
-              <div class="flex items-center gap-2 text-sm text-gray-700">
-                <i class="pi" [ngClass]="{
-                  'pi-image': adjunto.tipo === 'FOTO',
-                  'pi-video': adjunto.tipo === 'VIDEO',
-                  'pi-file': adjunto.tipo === 'DOCUMENTO'
-                }"></i>
-                {{ adjunto.nombreOriginal }}
+      <!-- Adjuntos/Historial 40% -->
+      <div class="lg:col-span-4 bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
+        <p-tabs value="0" styleClass="flex-1 flex flex-col">
+          <p-tablist>
+            <p-tab value="0">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-paperclip"></i>
+                <span class="font-poppins font-semibold text-sm">Adjuntos</span>
+                @if (adjuntos.length > 0) {
+                  <span class="text-xs text-gray-400">({{ adjuntos.length }})</span>
+                }
               </div>
-              <p-button icon="pi pi-download" [text]="true" [rounded]="true" (onClick)="descargarAdjunto(adjunto)"></p-button>
-            </li>
-          }
-        </ul>
-      }
+            </p-tab>
+            <p-tab value="1">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-history"></i>
+                <span class="font-poppins font-semibold text-sm">Historial</span>
+              </div>
+            </p-tab>
+          </p-tablist>
+
+          <p-tabpanels>
+            <p-tabpanel value="0">
+              <div class="flex justify-end mb-4">
+                <p-fileUpload
+                  mode="basic"
+                  chooseLabel="Subir archivo"
+                  [customUpload]="true"
+                  [auto]="true"
+                  (uploadHandler)="subirAdjunto($event)">
+                </p-fileUpload>
+              </div>
+
+              @if (adjuntos.length === 0) {
+                <p class="text-sm text-gray-400">Sin adjuntos todavía.</p>
+              } @else {
+                <ul class="flex flex-col gap-2">
+                  @for (adjunto of adjuntos; track adjunto.id) {
+                    <li class="flex items-center justify-between border border-gray-100 rounded-md px-3 py-2 gap-2">
+                      <div class="flex items-center gap-2 text-sm text-gray-700 min-w-0">
+                        <i class="pi shrink-0" [ngClass]="{
+                          'pi-image': adjunto.tipo === 'FOTO',
+                          'pi-video': adjunto.tipo === 'VIDEO',
+                          'pi-file': adjunto.tipo === 'DOCUMENTO'
+                        }"></i>
+                        <span class="truncate">{{ adjunto.nombreOriginal }}</span>
+                      </div>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <p-button
+                          [icon]="esVisualizable(adjunto) ? 'pi pi-eye' : 'pi pi-download'"
+                          [pTooltip]="esVisualizable(adjunto) ? 'Ver' : 'Descargar'"
+                          tooltipPosition="top"
+                          [text]="true"
+                          [rounded]="true"
+                          (onClick)="abrirAdjunto(adjunto)">
+                        </p-button>
+                        @if (puedeBorrarAdjunto(adjunto)) {
+                          <p-button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            pTooltip="Borrar"
+                            tooltipPosition="top"
+                            [text]="true"
+                            [rounded]="true"
+                            (onClick)="confirmarEliminarAdjunto(adjunto)">
+                          </p-button>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              }
+            </p-tabpanel>
+
+            <p-tabpanel value="1">
+              @if (historial.length === 0) {
+                <p class="text-sm text-gray-400">Sin movimientos todavía.</p>
+              } @else {
+                <p-timeline [value]="historial" align="left">
+                  <ng-template pTemplate="content" let-item>
+                    <div class="pb-2">
+                      <div class="flex items-center gap-1 flex-wrap">
+                        @if (item.estadoAnterior) {
+                          <p-tag [severity]="severityEstado(item.estadoAnterior)" [value]="labelEstado(item.estadoAnterior)" styleClass="text-xs"></p-tag>
+                          <i class="pi pi-arrow-right text-xs text-gray-400"></i>
+                        }
+                        <p-tag [severity]="severityEstado(item.estadoNuevo)" [value]="labelEstado(item.estadoNuevo)" styleClass="text-xs"></p-tag>
+                      </div>
+                      <p class="text-xs text-gray-400 mt-1">{{ item.cambiadoEn | date: 'dd/MM/yy HH:mm' }} · {{ item.cambiadoPor }}</p>
+                      @if (item.nota) {
+                        <p class="text-sm text-gray-600 mt-1">{{ item.nota }}</p>
+                      }
+                    </div>
+                  </ng-template>
+                </p-timeline>
+              }
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
+      </div>
     </div>
   } @else if (cargando) {
     <p class="text-gray-400">Cargando...</p>

@@ -26,4 +26,8 @@ export class AdjuntosService {
   descargar(adjuntoId: number): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/adjuntos/${adjuntoId}/descargar`, { responseType: 'blob' });
   }
+
+  eliminar(adjuntoId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/adjuntos/${adjuntoId}`);
+  }
 }

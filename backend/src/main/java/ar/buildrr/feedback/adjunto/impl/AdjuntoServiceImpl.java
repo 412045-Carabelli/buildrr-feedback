@@ -6,49 +6,59 @@ import ar.buildrr.feedback.adjunto.AdjuntoRepository;
 import ar.buildrr.feedback.adjunto.AdjuntoService;
 import ar.buildrr.feedback.adjunto.TipoAdjunto;
 import ar.buildrr.feedback.adjunto.dto.AdjuntoResponse;
+import ar.buildrr.feedback.adjunto.dto.DocumentoRemotoResponse;
 import ar.buildrr.feedback.adjunto.exception.AdjuntoInvalidoException;
 import ar.buildrr.feedback.adjunto.exception.AdjuntoNotFoundException;
+import ar.buildrr.feedback.ticket.entity.Ticket;
+import ar.buildrr.feedback.ticket.exception.AccesoDenegadoException;
 import ar.buildrr.feedback.ticket.exception.TicketNotFoundException;
 import ar.buildrr.feedback.ticket.repository.TicketRepository;
-import io.minio.GetObjectArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import lombok.RequiredArgsConstructor;
+import ar.buildrr.feedback.usuarioaplicacion.UsuarioAplicacionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
- * Sube a MinIO segmentado por ticket: cada objeto vive bajo el prefijo
- * `ticket/{ticketId}/...`, así que auditar o limpiar los adjuntos de un
- * ticket es un list-by-prefix, sin tocar los de otros tickets.
- *
- * La descarga es un proxy de este backend (getObject + devolver bytes), no
- * una URL directa a MinIO: el bucket es privado y su hostname interno
- * (`minio:9000`, red Docker `sgo_backend`) no es alcanzable desde el
- * navegador — mismo patrón que documentos-service de SGO.
+ * No maneja storage propio — sube y descarga a través del documentos-service
+ * compartido de SGO (mismo MinIO, otro servicio), identificado como
+ * producto=BUILDRR_FEEDBACK y tipo_asociado=ticket/id_asociado=ticketId (ver
+ * strategy/BuildrrFeedbackDocumentoStrategy del lado de documentos-service).
+ * `Adjunto.url` guarda el `id_documento` remoto, no un object key propio —
+ * este backend nunca ve el bucket ni las credenciales de MinIO.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AdjuntoServiceImpl implements AdjuntoService {
 
   private static final Set<String> EXTENSIONES_BLOQUEADAS =
       Set.of("exe", "bat", "cmd", "sh", "ps1", "msi", "jar", "com", "scr");
 
-  private final MinioClient minioClient;
+  private final RestClient documentosClient;
   private final AdjuntoRepository adjuntoRepository;
   private final TicketRepository ticketRepository;
+  private final UsuarioAplicacionService usuarioAplicacionService;
 
-  @Value("${minio.bucket}")
-  private String bucket;
+  public AdjuntoServiceImpl(
+      @Value("${documentos.service.url}") String documentosServiceUrl,
+      AdjuntoRepository adjuntoRepository,
+      TicketRepository ticketRepository,
+      UsuarioAplicacionService usuarioAplicacionService) {
+    this.documentosClient = RestClient.builder().baseUrl(documentosServiceUrl).build();
+    this.adjuntoRepository = adjuntoRepository;
+    this.ticketRepository = ticketRepository;
+    this.usuarioAplicacionService = usuarioAplicacionService;
+  }
 
   @Override
   @Transactional
@@ -64,25 +74,45 @@ public class AdjuntoServiceImpl implements AdjuntoService {
     validarExtension(nombreOriginal);
 
     TipoAdjunto tipo = tipoSegunContentType(archivo.getContentType());
-    String objectKey = "ticket/%d/%s-%s".formatted(ticketId, UUID.randomUUID(), nombreOriginal);
 
-    try (InputStream input = archivo.getInputStream()) {
-      minioClient.putObject(PutObjectArgs.builder()
-          .bucket(bucket)
-          .object(objectKey)
-          .stream(input, archivo.getSize(), -1)
-          .contentType(archivo.getContentType())
-          .build());
+    MultipartBodyBuilder body = new MultipartBodyBuilder();
+    body.part("tipo_asociado", "ticket");
+    body.part("id_asociado", ticketId.toString());
+    body.part("producto", "BUILDRR_FEEDBACK");
+    body.part("tipo_documento", "OTRO");
+    try {
+      body.part("file", new ByteArrayResource(archivo.getBytes()) {
+        @Override
+        public String getFilename() {
+          return nombreOriginal;
+        }
+      }).contentType(MediaType.parseMediaType(
+          archivo.getContentType() != null ? archivo.getContentType() : "application/octet-stream"));
+    } catch (IOException e) {
+      throw new AdjuntoInvalidoException("No se pudo leer el archivo: " + e.getMessage());
+    }
+
+    DocumentoRemotoResponse remoto;
+    try {
+      remoto = documentosClient.post()
+          .contentType(MediaType.MULTIPART_FORM_DATA)
+          .body(body.build())
+          .retrieve()
+          .body(DocumentoRemotoResponse.class);
     } catch (Exception e) {
-      log.error("Error subiendo adjunto a MinIO", e);
+      log.error("Error subiendo adjunto a documentos-service", e);
       throw new AdjuntoInvalidoException("No se pudo subir el archivo: " + e.getMessage());
+    }
+
+    if (remoto == null || remoto.getId_documento() == null) {
+      throw new AdjuntoInvalidoException("documentos-service no devolvió un id de documento");
     }
 
     Adjunto guardado = adjuntoRepository.save(Adjunto.builder()
         .ticketId(ticketId)
         .historialEstadoId(historialEstadoId)
         .tipo(tipo)
-        .url(objectKey)
+        .url(remoto.getId_documento().toString())
         .nombreOriginal(nombreOriginal)
         .contentType(archivo.getContentType())
         .subidoPor(subidoPor)
@@ -103,16 +133,39 @@ public class AdjuntoServiceImpl implements AdjuntoService {
   @Transactional(readOnly = true)
   public AdjuntoDescarga descargar(Long adjuntoId) {
     Adjunto adjunto = buscar(adjuntoId);
-    try (InputStream in = minioClient.getObject(GetObjectArgs.builder()
-        .bucket(bucket)
-        .object(adjunto.getUrl())
-        .build())) {
-      byte[] contenido = in.readAllBytes();
+    try {
+      byte[] contenido = documentosClient.get()
+          .uri("/{id}/view", adjunto.getUrl())
+          .retrieve()
+          .body(byte[].class);
       return new AdjuntoDescarga(contenido, adjunto.getContentType(), adjunto.getNombreOriginal());
     } catch (Exception e) {
-      log.error("Error descargando adjunto {} de MinIO", adjuntoId, e);
+      log.error("Error descargando adjunto {} de documentos-service", adjuntoId, e);
       throw new AdjuntoInvalidoException("No se pudo descargar el archivo: " + e.getMessage());
     }
+  }
+
+  @Override
+  @Transactional
+  public void eliminar(Long adjuntoId, String solicitante) {
+    Adjunto adjunto = buscar(adjuntoId);
+    Ticket ticket = ticketRepository.findById(adjunto.getTicketId())
+        .orElseThrow(() -> new TicketNotFoundException("Ticket " + adjunto.getTicketId() + " no existe"));
+
+    boolean esQuienSubio = adjunto.getSubidoPor().equals(solicitante);
+    if (!esQuienSubio && !usuarioAplicacionService.esAdmin(solicitante, ticket.getProducto())) {
+      throw new AccesoDenegadoException("Solo quien subió el adjunto o un admin de " + ticket.getProducto() + " puede borrarlo");
+    }
+
+    try {
+      documentosClient.delete().uri("/{id}", adjunto.getUrl()).retrieve().toBodilessEntity();
+    } catch (Exception e) {
+      // No cortamos el borrado local por esto — puede ser un adjunto huérfano
+      // de antes de este cambio (id viejo, ya no existe en documentos-service).
+      log.warn("No se pudo borrar el documento remoto {} de documentos-service: {}", adjunto.getUrl(), e.getMessage());
+    }
+
+    adjuntoRepository.delete(adjunto);
   }
 
   private Adjunto buscar(Long id) {
@@ -148,6 +201,7 @@ public class AdjuntoServiceImpl implements AdjuntoService {
         .ticketId(adjunto.getTicketId())
         .historialEstadoId(adjunto.getHistorialEstadoId())
         .tipo(adjunto.getTipo())
+        .contentType(adjunto.getContentType())
         .nombreOriginal(adjunto.getNombreOriginal())
         .subidoPor(adjunto.getSubidoPor())
         .subidoEn(adjunto.getSubidoEn())

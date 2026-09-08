@@ -24,6 +24,7 @@ export class HeaderComponent {
   @ViewChild('userMenu') userMenu!: any;
 
   menuItems: MenuItem[] = [
+    { label: 'Cambiar contraseña', icon: 'pi pi-key', command: () => this.router.navigate(['/cuenta/cambiar-password']) },
     { label: 'Cerrar sesión', icon: 'pi pi-sign-out', command: () => this.cerrarSesion() }
   ];
 

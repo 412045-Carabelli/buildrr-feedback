@@ -55,12 +55,6 @@
 
     <!-- MinIO: mismo storage de adjuntos que usa el stack SGO -->
     <dependency>
-      <groupId>io.minio</groupId>
-      <artifactId>minio</artifactId>
-      <version>8.5.12</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <optional>true</optional>

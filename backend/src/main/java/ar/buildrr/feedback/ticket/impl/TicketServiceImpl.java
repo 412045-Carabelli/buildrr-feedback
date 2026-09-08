@@ -2,13 +2,22 @@ package ar.buildrr.feedback.ticket.impl;
 
 import ar.buildrr.feedback.ticket.TicketService;
 import ar.buildrr.feedback.ticket.dto.CambiarEstadoRequest;
+import ar.buildrr.feedback.ticket.dto.EditarTicketRequest;
+import ar.buildrr.feedback.ticket.dto.EstadisticasTicketResponse;
+import ar.buildrr.feedback.ticket.dto.HistorialEstadoResponse;
 import ar.buildrr.feedback.ticket.dto.TicketRequest;
 import ar.buildrr.feedback.ticket.dto.TicketResponse;
 import ar.buildrr.feedback.ticket.entity.HistorialEstado;
 import ar.buildrr.feedback.ticket.entity.Producto;
 import ar.buildrr.feedback.ticket.entity.Ticket;
+import ar.buildrr.feedback.ticket.estado.AnuladoEstado;
+import ar.buildrr.feedback.ticket.estado.CompletadoEstado;
+import ar.buildrr.feedback.ticket.estado.EnProgresoEstado;
 import ar.buildrr.feedback.ticket.estado.EstadoTicketResolver;
+import ar.buildrr.feedback.ticket.estado.NuevoEstado;
+import ar.buildrr.feedback.ticket.estado.TestingEstado;
 import ar.buildrr.feedback.ticket.exception.AccesoDenegadoException;
+import ar.buildrr.feedback.ticket.exception.TicketInvalidoException;
 import ar.buildrr.feedback.ticket.exception.TicketNotFoundException;
 import ar.buildrr.feedback.ticket.factory.TicketFactory;
 import ar.buildrr.feedback.ticket.factory.TicketFactoryResolver;
@@ -62,23 +71,104 @@ public class TicketServiceImpl implements TicketService {
   }
 
   @Override
+  public TicketResponse editar(Long id, EditarTicketRequest request, String editor) {
+    Ticket ticket = buscar(id);
+
+    boolean esCreador = ticket.getCreadoPor().equals(editor);
+    if (!esCreador && !usuarioAplicacionService.esAdmin(editor, ticket.getProducto())) {
+      throw new AccesoDenegadoException("Solo quien creó el ticket o un admin de " + ticket.getProducto() + " puede editarlo");
+    }
+    if (AnuladoEstado.NOMBRE.equals(ticket.getEstado())) {
+      throw new TicketInvalidoException("Un ticket anulado no se puede editar");
+    }
+
+    ticket.setTitulo(request.getTitulo());
+    ticket.setModulo(request.getModulo());
+    ticket.setFecha(request.getFecha() != null ? request.getFecha() : ticket.getFecha());
+    ticket.setDescripcion(request.getDescripcion());
+
+    return toResponse(ticketRepository.save(ticket));
+  }
+
+  @Override
   @Transactional(readOnly = true)
-  public List<TicketResponse> listar(String username, Producto filtroProducto) {
+  public List<HistorialEstadoResponse> historial(Long id) {
+    buscar(id);
+    return historialEstadoRepository.findByTicketIdOrderByCambiadoEnAsc(id).stream()
+        .map(h -> HistorialEstadoResponse.builder()
+            .estadoAnterior(h.getEstadoAnterior())
+            .estadoNuevo(h.getEstadoNuevo())
+            .nota(h.getNota())
+            .cambiadoPor(h.getCambiadoPor())
+            .cambiadoEn(h.getCambiadoEn())
+            .build())
+        .toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TicketResponse> listar(String username, Producto filtroProducto, List<String> filtroEstados) {
+    Set<Producto> accesibles = accesibles(username, filtroProducto);
+    if (accesibles.isEmpty()) {
+      return List.of();
+    }
+    boolean hayFiltroEstado = filtroEstados != null && !filtroEstados.isEmpty();
+
+    if (filtroProducto != null) {
+      List<Ticket> tickets = hayFiltroEstado
+          ? ticketRepository.findByProductoAndEstadoIn(filtroProducto, filtroEstados)
+          : ticketRepository.findByProducto(filtroProducto);
+      return tickets.stream().map(this::toResponse).toList();
+    }
+
+    List<Ticket> tickets = hayFiltroEstado
+        ? ticketRepository.findByProductoInAndEstadoIn(accesibles, filtroEstados)
+        : ticketRepository.findByProductoIn(accesibles);
+    return tickets.stream().map(this::toResponse).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public EstadisticasTicketResponse estadisticas(String username, Producto filtroProducto) {
+    Set<Producto> accesibles = accesibles(username, filtroProducto);
+    if (accesibles.isEmpty()) {
+      return EstadisticasTicketResponse.builder().build();
+    }
+
+    long nuevos = contar(accesibles, filtroProducto, NuevoEstado.NOMBRE);
+    long enProgreso = contar(accesibles, filtroProducto, EnProgresoEstado.NOMBRE);
+    long testing = contar(accesibles, filtroProducto, TestingEstado.NOMBRE);
+    long completados = contar(accesibles, filtroProducto, CompletadoEstado.NOMBRE);
+
+    return EstadisticasTicketResponse.builder()
+        .total(nuevos + enProgreso + testing + completados)
+        .nuevos(nuevos)
+        .enProgreso(enProgreso)
+        .testing(testing)
+        .completados(completados)
+        .pendientes(nuevos + enProgreso + testing)
+        .build();
+  }
+
+  /** Set de productos a mirar: solo el filtrado (si el usuario tiene acceso) o todos los accesibles. */
+  private Set<Producto> accesibles(String username, Producto filtroProducto) {
     Set<Producto> accesibles = usuarioAplicacionService.misAplicaciones(username).stream()
         .map(AplicacionAccesoResponse::getProducto)
         .collect(Collectors.toSet());
 
-    if (filtroProducto != null) {
-      if (!accesibles.contains(filtroProducto)) {
-        throw new AccesoDenegadoException("No tenés acceso a " + filtroProducto);
-      }
-      return ticketRepository.findByProducto(filtroProducto).stream().map(this::toResponse).toList();
+    if (filtroProducto == null) {
+      return accesibles;
     }
+    if (!accesibles.contains(filtroProducto)) {
+      throw new AccesoDenegadoException("No tenés acceso a " + filtroProducto);
+    }
+    return Set.of(filtroProducto);
+  }
 
-    if (accesibles.isEmpty()) {
-      return List.of();
-    }
-    return ticketRepository.findByProductoIn(accesibles).stream().map(this::toResponse).toList();
+  private long contar(Set<Producto> accesibles, Producto filtroProducto, String estado) {
+    return filtroProducto != null
+        ? ticketRepository.countByProductoAndEstado(filtroProducto, estado)
+        : ticketRepository.countByProductoInAndEstado(accesibles, estado);
   }
 
   @Override

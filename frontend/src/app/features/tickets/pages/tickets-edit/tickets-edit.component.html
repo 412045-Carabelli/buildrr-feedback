@@ -1,0 +1,46 @@
+<p-toast></p-toast>
+
+<app-layout-header type="edit" title="Editar ticket" [subtitle]="nombreProducto">
+  <a header-actions [routerLink]="['/tickets', ticket?.id]">
+    <p-button label="Volver" icon="pi pi-arrow-left"></p-button>
+  </a>
+</app-layout-header>
+
+<div class="p-6">
+  @if (ticket) {
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="max-w-3xl mx-auto flex flex-col gap-6">
+      <div class="flex flex-col gap-4 bg-white border border-gray-200 rounded-lg p-6">
+        <div class="flex flex-col gap-1">
+          <label for="titulo" class="text-sm font-medium text-gray-700">Título</label>
+          <input pInputText id="titulo" formControlName="titulo" class="w-full" />
+          @if (form.get('titulo')?.invalid && form.get('titulo')?.touched) {
+            <span class="text-xs text-red-500">Título requerido, mínimo 3 caracteres</span>
+          }
+        </div>
+
+        <div class="flex gap-4">
+          <div class="flex flex-col gap-1 w-1/2">
+            <label for="modulo" class="text-sm font-medium text-gray-700">Módulo</label>
+            <input pInputText id="modulo" formControlName="modulo" placeholder="Ej: Movimientos, Facturación..." class="w-full" />
+          </div>
+
+          <div class="flex flex-col gap-1 w-1/2">
+            <label class="text-sm font-medium text-gray-700">Fecha</label>
+            <p-datepicker formControlName="fecha" dateFormat="dd/mm/yy" [showIcon]="true" fluid></p-datepicker>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col bg-white border border-gray-200 rounded-lg p-6">
+        <label class="text-sm font-medium text-gray-700 mb-1">Descripción</label>
+        <p-editor formControlName="descripcion" [style]="{ height: '270px' }"></p-editor>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <p-button label="Guardar cambios" type="submit" [loading]="guardando"></p-button>
+      </div>
+    </form>
+  } @else if (cargando) {
+    <p class="text-gray-400">Cargando...</p>
+  }
+</div>

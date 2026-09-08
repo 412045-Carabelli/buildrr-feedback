@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -14,6 +14,7 @@ import { TicketsService } from '../../../../services/tickets/tickets.service';
 import { AdjuntosService } from '../../../../services/adjuntos/adjuntos.service';
 import { AplicacionSeleccionadaService } from '../../../../services/aplicaciones/aplicacion-seleccionada.service';
 import { NOMBRE_PRODUCTO } from '../../../../core/constants/producto-labels';
+import { LayoutHeaderComponent } from '../../../../shared/layout-header/layout-header.component';
 
 @Component({
   selector: 'app-tickets-create',
@@ -21,12 +22,14 @@ import { NOMBRE_PRODUCTO } from '../../../../core/constants/producto-labels';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
     SelectModule,
     InputTextModule,
     DatePickerModule,
     EditorModule,
     ButtonModule,
-    ToastModule
+    ToastModule,
+    LayoutHeaderComponent
   ],
   providers: [MessageService],
   templateUrl: './tickets-create.component.html'

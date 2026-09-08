@@ -47,6 +47,11 @@ export class AplicacionSeleccionadaService {
     return this.aplicacionesActuales.some((a) => a.producto === producto && a.rol === 'ADMIN');
   }
 
+  /** Para mostrar Dashboard/Usuarios en el sidebar — el backend igual valida por producto en cada endpoint. */
+  esAdminDeAlguna(): boolean {
+    return this.aplicacionesActuales.some((a) => a.rol === 'ADMIN');
+  }
+
   private resolverSeleccionInicial(aplicaciones: AplicacionAccesoResponse[]): Producto | null {
     if (aplicaciones.length === 0) return null;
 

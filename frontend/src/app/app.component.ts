@@ -7,7 +7,9 @@ import { SidebarComponent } from './shared/sidebar/sidebar.component';
 import { AuthService } from './services/auth/auth.service';
 import { AplicacionSeleccionadaService } from './services/aplicaciones/aplicacion-seleccionada.service';
 
-const RUTAS_PUBLICAS = ['/login'];
+// TEMPORAL: /cuenta/cambiar-password es pública mientras no exige login (ver
+// app.routes.ts) — sacarla de acá cuando se reponga el authGuard.
+const RUTAS_PUBLICAS = ['/login', '/cuenta/cambiar-password'];
 
 @Component({
   selector: 'app-root',

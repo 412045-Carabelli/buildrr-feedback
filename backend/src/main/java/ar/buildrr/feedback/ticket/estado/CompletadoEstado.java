@@ -15,7 +15,9 @@ public class CompletadoEstado implements EstadoTicket {
 
   @Override
   public Set<String> transicionesPermitidas() {
-    // Estado terminal — no hay "cancelado/descartado" en el alcance inicial.
-    return Set.of();
+    // Reabrir el ciclo (pedido explícito del owner) — el frontend confirma
+    // con el usuario antes de mandar esta transición, acá solo se valida que
+    // sea válida. Sigue sin haber "cancelado/descartado" en el alcance.
+    return Set.of(NuevoEstado.NOMBRE);
   }
 }

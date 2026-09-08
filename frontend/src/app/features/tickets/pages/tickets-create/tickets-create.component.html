@@ -1,8 +1,12 @@
 <p-toast></p-toast>
 
-<div class="p-6">
-  <h1 class="text-2xl font-semibold text-gray-800 mb-6">Nuevo ticket</h1>
+<app-layout-header type="create" title="Nuevo ticket" [subtitle]="nombreAplicacionSeleccionada">
+  <a header-actions routerLink="/tickets">
+    <p-button label="Volver" icon="pi pi-arrow-left"></p-button>
+  </a>
+</app-layout-header>
 
+<div class="p-6">
   <form [formGroup]="form" (ngSubmit)="guardar()">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 

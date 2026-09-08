@@ -46,4 +46,10 @@ public class AdjuntoController {
             ContentDisposition.attachment().filename(descarga.nombreArchivo()).build().toString())
         .body(descarga.contenido());
   }
+
+  @DeleteMapping("/api/adjuntos/{id}")
+  public ResponseEntity<Void> eliminar(@PathVariable Long id, @AuthenticationPrincipal AuthenticatedUser usuario) {
+    service.eliminar(id, usuario.username());
+    return ResponseEntity.noContent().build();
+  }
 }

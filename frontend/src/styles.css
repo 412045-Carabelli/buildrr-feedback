@@ -3,7 +3,14 @@
 @import "quill/dist/quill.snow.css";
 
 /* Misma tipografía y escala que sistema-gestion-obras/frontend — mismo "look"
-   en toda la familia Buildrr. */
+   en toda la familia Buildrr. `font-poppins` es la clase que usan
+   layout-header/kpi-card (copiados de SGO); ahí nunca se cargó Poppins de
+   verdad, así que definimos el fallback como utilidad real (Tailwind v4:
+   `--font-*` en @theme genera `font-*`) en vez de dejarla como no-op. */
+@theme {
+  --font-poppins: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
@@ -172,5 +179,24 @@ body {
   .p-datatable .p-datatable-tbody > tr > td {
     padding: 0.75rem 0.5rem;
     font-size: 0.875rem;
+  }
+}
+
+/* Botón "Nuevo" responsive: en mobile muestra solo ícono + grande (copiado
+   de sistema-gestion-obras/frontend/src/styles.css). */
+@media (max-width: 1023px) {
+  .btn-mobile-icon .p-button-label {
+    display: none;
+  }
+  .btn-mobile-icon .p-button {
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    justify-content: center;
+  }
+  .btn-mobile-icon .p-button-icon {
+    font-size: 1.25rem;
+    margin: 0;
   }
 }

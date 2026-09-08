@@ -7,9 +7,14 @@
 - Selector de aplicación persistente en el navbar (`usuario_aplicacion`
   decide qué opciones ve cada usuario) — determina a qué producto se cargan
   los bugs nuevos y qué tickets se ven en el dashboard.
-- Ciclo de vida del ticket con 4 estados: NUEVO → EN_PROGRESO → TESTING → COMPLETADO.
-  Desde TESTING se puede volver a EN_PROGRESO si algo no funciona (ver
+- Ciclo de vida del ticket: NUEVO → EN_PROGRESO → TESTING → COMPLETADO, con
+  ANULADO como salida desde cualquier estado no terminal y reapertura
+  (COMPLETADO → NUEVO) con confirmación del usuario. Desde TESTING se puede
+  volver a EN_PROGRESO si algo no funciona (ver
   [03-ciclo-de-vida.md](03-ciclo-de-vida.md)).
+- Edición de los datos de carga (título, módulo, fecha, descripción) por quien
+  creó el ticket o un admin del producto — no se puede editar un ticket
+  anulado, y no se reasignan tipo/producto.
 - Gestión del estado del lado admin (Gino): cambiar estado, adjuntar captura de
   "así quedó" cuando corresponde, agregar una nota visible para Pablo.
 - Registro de horas por ticket (número simple, sin tipos de hora ni contratos),

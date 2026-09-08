@@ -12,4 +12,7 @@ public interface AdjuntoService {
   List<AdjuntoResponse> listarPorTicket(Long ticketId);
 
   AdjuntoDescarga descargar(Long adjuntoId);
+
+  /** Solo quien subió el adjunto o un admin del producto del ticket. Best-effort en documentos-service. */
+  void eliminar(Long adjuntoId, String solicitante);
 }
