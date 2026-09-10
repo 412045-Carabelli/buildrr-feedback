@@ -68,7 +68,13 @@ services:
         limits:
           memory: 512M
     networks:
-      - sgo_backend
+      sgo_backend:
+        # Alias sin "_": java.net.URI / UriComponentsBuilder de Spring no
+        # aceptan underscore en el host (aunque el DNS de Docker si resuelve
+        # container_name con "_" sin problema) — el api-gateway de SGO le
+        # pega a este alias, no al container_name.
+        aliases:
+          - buildrr-feedback-backend
 
   frontend:
     pull_policy: always
