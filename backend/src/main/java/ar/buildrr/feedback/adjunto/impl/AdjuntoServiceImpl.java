@@ -20,12 +20,14 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -54,7 +56,16 @@ public class AdjuntoServiceImpl implements AdjuntoService {
       AdjuntoRepository adjuntoRepository,
       TicketRepository ticketRepository,
       UsuarioAplicacionService usuarioAplicacionService) {
-    this.documentosClient = RestClient.builder().baseUrl(documentosServiceUrl).build();
+    // Sin timeout, un documentos-service colgado (o su propia dependencia,
+    // p. ej. MinIO) deja el request de subida pendiente para siempre — el
+    // hilo de Tomcat que lo atiende nunca libera la conexión.
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout((int) Duration.ofSeconds(5).toMillis());
+    factory.setReadTimeout((int) Duration.ofSeconds(30).toMillis());
+    this.documentosClient = RestClient.builder()
+        .baseUrl(documentosServiceUrl)
+        .requestFactory(factory)
+        .build();
     this.adjuntoRepository = adjuntoRepository;
     this.ticketRepository = ticketRepository;
     this.usuarioAplicacionService = usuarioAplicacionService;

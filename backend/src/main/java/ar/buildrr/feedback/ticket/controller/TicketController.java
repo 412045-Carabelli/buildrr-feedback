@@ -11,9 +11,11 @@ import ar.buildrr.feedback.ticket.dto.TicketResponse;
 import ar.buildrr.feedback.ticket.entity.Producto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,11 +26,19 @@ public class TicketController {
 
   private final TicketService service;
 
-  @PostMapping
+  /**
+   * Multipart en vez de JSON: crea el ticket y sube los adjuntos (si vienen)
+   * en un solo request/transacción, para no dejar tickets sin sus adjuntos
+   * por una falla de red al subirlos por separado. La parte "ticket" va como
+   * JSON (mismo Content-Type que un Blob armado con application/json en el
+   * front).
+   */
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<TicketResponse> crear(
-      @Valid @RequestBody TicketRequest request,
+      @Valid @RequestPart("ticket") TicketRequest request,
+      @RequestPart(value = "archivos", required = false) List<MultipartFile> archivos,
       @AuthenticationPrincipal AuthenticatedUser usuario) {
-    return ResponseEntity.ok(service.crear(request, usuario.username()));
+    return ResponseEntity.ok(service.crearConAdjunto(request, archivos, usuario.username()));
   }
 
   @GetMapping
