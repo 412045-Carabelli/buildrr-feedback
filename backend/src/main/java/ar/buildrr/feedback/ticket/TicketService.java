@@ -7,11 +7,17 @@ import ar.buildrr.feedback.ticket.dto.HistorialEstadoResponse;
 import ar.buildrr.feedback.ticket.dto.TicketRequest;
 import ar.buildrr.feedback.ticket.dto.TicketResponse;
 import ar.buildrr.feedback.ticket.entity.Producto;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface TicketService {
-  TicketResponse crear(TicketRequest request, String creadoPor);
+  /**
+   * Crea el ticket y sube los adjuntos (si vienen) en la misma transacción:
+   * si la subida a documentos-service falla para alguno, se revierte todo —
+   * no queda un ticket a medio adjuntar. {@code archivos} es opcional.
+   */
+  TicketResponse crearConAdjunto(TicketRequest request, List<MultipartFile> archivos, String creadoPor);
 
   TicketResponse obtenerPorId(Long id);
 

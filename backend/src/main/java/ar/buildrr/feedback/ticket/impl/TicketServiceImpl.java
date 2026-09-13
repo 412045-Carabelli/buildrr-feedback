@@ -25,9 +25,11 @@ import ar.buildrr.feedback.ticket.repository.HistorialEstadoRepository;
 import ar.buildrr.feedback.ticket.repository.TicketRepository;
 import ar.buildrr.feedback.usuarioaplicacion.UsuarioAplicacionService;
 import ar.buildrr.feedback.usuarioaplicacion.dto.AplicacionAccesoResponse;
+import ar.buildrr.feedback.adjunto.AdjuntoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Set;
@@ -43,9 +45,26 @@ public class TicketServiceImpl implements TicketService {
   private final TicketFactoryResolver ticketFactoryResolver;
   private final EstadoTicketResolver estadoTicketResolver;
   private final UsuarioAplicacionService usuarioAplicacionService;
+  private final AdjuntoService adjuntoService;
 
   @Override
-  public TicketResponse crear(TicketRequest request, String creadoPor) {
+  public TicketResponse crearConAdjunto(TicketRequest request, List<MultipartFile> archivos, String creadoPor) {
+    Ticket guardado = crearTicket(request, creadoPor);
+
+    if (archivos != null) {
+      for (MultipartFile archivo : archivos) {
+        if (archivo == null || archivo.isEmpty()) continue;
+        // Misma transacción que la creación del ticket: si documentos-service
+        // rechaza o falla la subida de cualquiera, se revierte el ticket
+        // también — no queda un ticket a medio adjuntar.
+        adjuntoService.subir(guardado.getId(), null, archivo, creadoPor);
+      }
+    }
+
+    return toResponse(guardado);
+  }
+
+  private Ticket crearTicket(TicketRequest request, String creadoPor) {
     if (!usuarioAplicacionService.tieneAcceso(creadoPor, request.getProducto())) {
       throw new AccesoDenegadoException("No tenés acceso a " + request.getProducto());
     }
@@ -61,7 +80,7 @@ public class TicketServiceImpl implements TicketService {
         .cambiadoPor(creadoPor)
         .build());
 
-    return toResponse(guardado);
+    return guardado;
   }
 
   @Override

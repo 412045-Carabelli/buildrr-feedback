@@ -39,8 +39,16 @@ export class TicketsService {
     return this.http.get<TicketResponse>(`${this.apiUrl}/${id}`);
   }
 
-  crear(payload: TicketRequest): Observable<TicketResponse> {
-    return this.http.post<TicketResponse>(this.apiUrl, payload);
+  /**
+   * Multipart: crea el ticket y sube los adjuntos en el mismo request — si
+   * falla la subida de alguno, el backend revierte también la creación del
+   * ticket (no queda un ticket a medio adjuntar).
+   */
+  crear(payload: TicketRequest, archivos: File[] = []): Observable<TicketResponse> {
+    const formData = new FormData();
+    formData.append('ticket', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    archivos.forEach((archivo) => formData.append('archivos', archivo));
+    return this.http.post<TicketResponse>(this.apiUrl, formData);
   }
 
   cambiarEstado(id: number, payload: CambiarEstadoRequest): Observable<TicketResponse> {
