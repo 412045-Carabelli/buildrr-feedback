@@ -194,7 +194,8 @@ public class TicketServiceImpl implements TicketService {
   public TicketResponse cambiarEstado(Long id, CambiarEstadoRequest request, String cambiadoPor) {
     Ticket ticket = buscar(id);
 
-    if (!usuarioAplicacionService.esAdmin(cambiadoPor, ticket.getProducto())) {
+    boolean esAdmin = usuarioAplicacionService.esAdmin(cambiadoPor, ticket.getProducto());
+    if (!esAdmin && !puedeCreadorValidarTesting(ticket, request.getEstadoNuevo(), cambiadoPor)) {
       throw new AccesoDenegadoException("Solo un admin de " + ticket.getProducto() + " puede cambiar el estado");
     }
 
@@ -213,6 +214,18 @@ public class TicketServiceImpl implements TicketService {
         .build());
 
     return toResponse(guardado);
+  }
+
+  /**
+   * Excepción puntual al esquema admin-only: el creador del ticket puede
+   * validar el resultado de un TESTING sin ser admin — confirmar
+   * (COMPLETADO) o rechazar (vuelve a EN_PROGRESO). No habilita ninguna otra
+   * transición (p. ej. ANULADO sigue siendo solo de admin).
+   */
+  private boolean puedeCreadorValidarTesting(Ticket ticket, String estadoNuevo, String solicitante) {
+    return TestingEstado.NOMBRE.equals(ticket.getEstado())
+        && ticket.getCreadoPor().equals(solicitante)
+        && (CompletadoEstado.NOMBRE.equals(estadoNuevo) || EnProgresoEstado.NOMBRE.equals(estadoNuevo));
   }
 
   private Ticket buscar(Long id) {

@@ -27,7 +27,7 @@
 
       <!-- "Siguiente paso" a la altura de los KPI, no como sección aparte. -->
       <div class="w-full h-full rounded-xl shadow-md p-6 flex flex-col justify-center gap-2 bg-white" style="border-left: 6px solid #059669;">
-        @if (puedeGestionar && acciones.length > 0) {
+        @if (puedeCambiarEstado && acciones.length > 0) {
           <span class="text-sm font-poppins font-semibold text-gray-600 mb-1">Siguiente paso</span>
           @for (accion of acciones; track accion.destino) {
             <p-button

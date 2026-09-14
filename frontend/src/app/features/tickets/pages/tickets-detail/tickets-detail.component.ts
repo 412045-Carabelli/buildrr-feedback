@@ -97,6 +97,15 @@ export class TicketsDetailComponent implements OnInit {
     return !!this.ticket && this.aplicacionSeleccionadaService.esAdminDe(this.ticket.producto);
   }
 
+  /** El creador puede validar el resultado de un TESTING sin ser admin — mismo criterio que el backend. */
+  get puedeValidarTesting(): boolean {
+    return !!this.ticket && this.ticket.estado === 'TESTING' && this.ticket.creadoPor === this.authService.getUsername();
+  }
+
+  get puedeCambiarEstado(): boolean {
+    return this.puedeGestionar || this.puedeValidarTesting;
+  }
+
   puedeBorrarAdjunto(adjunto: AdjuntoResponse): boolean {
     return this.puedeGestionar || adjunto.subidoPor === this.authService.getUsername();
   }
