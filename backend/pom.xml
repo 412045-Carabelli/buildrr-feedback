@@ -39,6 +39,15 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
+    <!-- RestClient necesita esto en runtime para escribir bodies
+         multipart/form-data (MultipartBodyBuilder), aunque el servicio sea
+         Spring MVC puro sin WebFlux — sin esto: NoClassDefFoundError:
+         org/reactivestreams/Publisher al subir adjuntos. -->
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
       <artifactId>mssql-jdbc</artifactId>
