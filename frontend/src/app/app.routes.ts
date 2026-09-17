@@ -24,8 +24,8 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/usuarios/usuarios.component').then((m) => m.UsuariosComponent)
   },
   {
-    // TEMPORAL: sin authGuard — cambia por email, sin sesión. Reponer el guard
-    // cuando vuelva a exigirse login (ver cambiar-password.component.ts).
+    // Sin authGuard a propósito: es el flujo de recuperación sin sesión
+    // (forgot-password), no un cambio de contraseña logueado.
     path: 'cuenta/cambiar-password',
     loadComponent: () =>
       import('./features/cuenta/cambiar-password/cambiar-password.component').then((m) => m.CambiarPasswordComponent)

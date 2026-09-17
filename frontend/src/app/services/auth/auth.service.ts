@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ChangePasswordRequest, LoginRequest, LoginResponse, ResetPasswordSinLoginRequest } from '../../core/models/models';
+import { ChangePasswordRequest, ForgotPasswordRequest, LoginRequest, LoginResponse, ResetPasswordRequest } from '../../core/models/models';
 
 const TOKEN_KEY = 'buildrr_feedback_token';
 
@@ -30,9 +30,14 @@ export class AuthService {
     );
   }
 
-  /** TEMPORAL — sin login, ver ResetPasswordSinLoginRequest. Sacar cuando vuelva a exigirse sesión. */
-  resetPasswordSinLogin(request: ResetPasswordSinLoginRequest): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/reset-password-temporal`, request);
+  /** Mismo contrato que auth-service — envía el código de reset al mail. */
+  forgotPassword(request: ForgotPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/forgot-password`, request);
+  }
+
+  /** Mismo contrato que auth-service — valida el código y cambia la contraseña. */
+  resetPassword(request: ResetPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/reset-password`, request);
   }
 
   logout(): void {

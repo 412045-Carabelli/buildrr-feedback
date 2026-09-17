@@ -8,14 +8,8 @@ import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../services/auth/auth.service';
+import { ForgotPasswordRequest, ResetPasswordRequest } from '../../../core/models/models';
 
-/**
- * TEMPORAL — cambia contraseña por email, sin loguearse ni validar la
- * contraseña actual (pedido explícito, mientras no hay cuenta usable). Ver
- * ResetPasswordSinLoginRequest en auth-service. Cuando deje de hacer falta:
- * volver a currentPassword + AuthService.changePassword, y reponer authGuard
- * en la ruta (app.routes.ts).
- */
 @Component({
   selector: 'app-cambiar-password',
   standalone: true,
@@ -24,8 +18,11 @@ import { AuthService } from '../../../services/auth/auth.service';
   templateUrl: './cambiar-password.component.html'
 })
 export class CambiarPasswordComponent {
-  form: FormGroup;
-  cambiando = false;
+  paso: 'email' | 'codigo' = 'email';
+  emailForm: FormGroup;
+  codigoForm: FormGroup;
+  cargando = false;
+  emailEnviado = '';
 
   constructor(
     private fb: FormBuilder,
@@ -33,9 +30,13 @@ export class CambiarPasswordComponent {
     private messageService: MessageService,
     private router: Router
   ) {
-    this.form = this.fb.group(
+    this.emailForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
+    });
+
+    this.codigoForm = this.fb.group(
       {
-        email: ['', [Validators.required, Validators.email]],
+        code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
         newPassword: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]]
       },
@@ -43,26 +44,61 @@ export class CambiarPasswordComponent {
     );
   }
 
-  cambiar(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+  solicitarCodigo(): void {
+    if (this.emailForm.invalid) {
+      this.emailForm.markAllAsTouched();
       return;
     }
 
-    this.cambiando = true;
-    this.authService.resetPasswordSinLogin(this.form.getRawValue()).subscribe({
+    this.cargando = true;
+    const request: ForgotPasswordRequest = this.emailForm.getRawValue();
+
+    this.authService.forgotPassword(request).subscribe({
       next: () => {
-        this.cambiando = false;
+        this.cargando = false;
+        this.emailEnviado = request.email;
+        this.paso = 'codigo';
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Código enviado',
+          detail: 'Si el email existe, te enviamos un código. Revisá tu bandeja de entrada.'
+        });
+      },
+      error: () => {
+        this.cargando = false;
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo procesar la solicitud. Probá de nuevo.' });
+      }
+    });
+  }
+
+  confirmarReset(): void {
+    if (this.codigoForm.invalid) {
+      this.codigoForm.markAllAsTouched();
+      return;
+    }
+
+    this.cargando = true;
+    const request: ResetPasswordRequest = {
+      email: this.emailEnviado,
+      ...this.codigoForm.getRawValue()
+    };
+
+    this.authService.resetPassword(request).subscribe({
+      next: () => {
+        this.cargando = false;
         this.messageService.add({ severity: 'success', summary: 'Listo', detail: 'Contraseña actualizada, ya podés loguearte' });
-        this.form.reset();
         setTimeout(() => this.router.navigate(['/login']), 1200);
       },
       error: (err) => {
-        this.cambiando = false;
-        const detalle = err?.error?.message ?? 'No se pudo cambiar la contraseña';
+        this.cargando = false;
+        const detalle = err?.error?.message ?? 'Código inválido o expirado';
         this.messageService.add({ severity: 'error', summary: 'Error', detail: detalle });
       }
     });
+  }
+
+  volverAEmail(): void {
+    this.paso = 'email';
   }
 
   private passwordsCoinciden(group: AbstractControl): ValidationErrors | null {

@@ -21,11 +21,15 @@ export interface ChangePasswordRequest {
   confirmPassword: string;
 }
 
-// TEMPORAL — pedido explícito para cambiar sin loguearse mientras no hay
-// cuenta usable. Ver ResetPasswordSinLoginRequest en auth-service, sacar
-// cuando vuelva a exigirse login (issue: revertir a ChangePasswordRequest).
-export interface ResetPasswordSinLoginRequest {
+// Mismo contrato que auth-service (ForgotPasswordRequest/ResetPasswordRequest)
+// — recuperación de contraseña por código enviado a mail, sin login.
+export interface ForgotPasswordRequest {
   email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
   newPassword: string;
   confirmPassword: string;
 }
