@@ -29,8 +29,10 @@ public interface TicketService {
   /**
    * @param filtroProducto opcional — la app seleccionada en el navbar. Sin filtro, todas las que el usuario puede ver.
    * @param filtroEstados opcional — uno o más de NUEVO/EN_PROGRESO/TESTING/COMPLETADO, para los accesos rápidos del dashboard.
+   * @param busqueda opcional — texto libre, filtra por título o módulo (contains, case-insensitive).
+   * Siempre ordenado por creación descendente (más nuevo primero).
    */
-  List<TicketResponse> listar(String username, Producto filtroProducto, List<String> filtroEstados);
+  List<TicketResponse> listar(String username, Producto filtroProducto, List<String> filtroEstados, String busqueda);
 
   TicketResponse cambiarEstado(Long id, CambiarEstadoRequest request, String cambiadoPor);
 

@@ -1,21 +1,47 @@
 <p-toast></p-toast>
 
 <app-layout-header type="list" title="Tickets" subtitle="Bugs y funciones nuevas cargados">
+  <p-button
+    header-actions
+    label="Exportar"
+    icon="pi pi-download"
+    severity="secondary"
+    styleClass="btn-mobile-icon"
+    [disabled]="!tickets.length"
+    (onClick)="exportar()">
+  </p-button>
   <a header-actions routerLink="/tickets/nuevo">
     <p-button label="Nuevo ticket" icon="pi pi-plus" styleClass="btn-mobile-icon"></p-button>
   </a>
 </app-layout-header>
 
 <div class="p-6 space-y-4">
-  <div class="bg-white rounded-xl shadow-md p-4 flex items-center justify-end">
-    <p-select
-      [ngModel]="filtroDropdown"
-      (ngModelChange)="filtrarPorEstado($event)"
-      [options]="opcionesEstado"
-      optionLabel="label"
-      optionValue="value"
-      styleClass="w-56">
-    </p-select>
+  <div class="bg-white rounded-xl shadow-md p-4 flex items-center justify-between flex-wrap gap-3">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-search text-gray-400"></i>
+      <input
+        type="text"
+        pInputText
+        placeholder="Buscar por título o módulo"
+        [(ngModel)]="busqueda"
+        (ngModelChange)="onBuscar()"
+        class="w-64" />
+    </div>
+
+    <div class="flex items-center gap-4">
+      <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+        <p-checkbox [(ngModel)]="mostrarCompletados" (ngModelChange)="onToggleMostrarCompletados()" [binary]="true"></p-checkbox>
+        Mostrar completados
+      </label>
+      <p-select
+        [ngModel]="filtroDropdown"
+        (ngModelChange)="filtrarPorEstado($event)"
+        [options]="opcionesEstado"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-56">
+      </p-select>
+    </div>
   </div>
 
   <p-table [value]="tickets" [loading]="cargando" [paginator]="true" [rows]="15" dataKey="id">

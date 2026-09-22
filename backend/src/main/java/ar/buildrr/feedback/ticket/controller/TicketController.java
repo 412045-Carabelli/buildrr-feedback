@@ -45,8 +45,9 @@ public class TicketController {
   public ResponseEntity<List<TicketResponse>> listar(
       @RequestParam(required = false) Producto producto,
       @RequestParam(required = false) List<String> estado,
+      @RequestParam(required = false) String busqueda,
       @AuthenticationPrincipal AuthenticatedUser usuario) {
-    return ResponseEntity.ok(service.listar(usuario.username(), producto, estado));
+    return ResponseEntity.ok(service.listar(usuario.username(), producto, estado, busqueda));
   }
 
   @GetMapping("/stats")
