@@ -71,17 +71,11 @@ services:
       sgo_backend:
         # Alias sin "_": java.net.URI / UriComponentsBuilder de Spring no
         # aceptan underscore en el host (aunque el DNS de Docker si resuelve
-        # container_name con "_" sin problema).
-        #
-        # TRANSICION: el api-gateway de SGO (en el compose monolitico) le pega
-        # hoy a "feedback-backend" (el alias default del service key de ESE
-        # compose), no a este. Mientras conviven las dos apps de Dokploy no
-        # podemos usar ese mismo alias aca (colisiona en la red sgo_backend
-        # compartida). Al momento del corte — sacar el servicio del monolito —
-        # cambiar este alias a "feedback-backend" y redeployar, sin tocar el
-        # api-gateway.
+        # container_name con "_" sin problema) — el api-gateway de SGO le
+        # pega a este alias (application-prod.properties routes[7]/[8]/[9]/[10]),
+        # no al container_name.
         aliases:
-          - feedback-backend-standalone
+          - feedback-backend
 
   frontend:
     pull_policy: always
