@@ -22,11 +22,13 @@ export class TicketsService {
   /**
    * @param producto opcional — la app seleccionada en el navbar. Sin filtro, todas las accesibles.
    * @param estados opcional — uno o más, para los accesos rápidos del dashboard (ej. pendientes = 3 estados).
+   * @param busqueda opcional — texto libre, filtra por título o módulo. El backend ordena siempre por más nuevo primero.
    */
-  listar(producto?: Producto | null, estados?: EstadoTicket[] | null): Observable<TicketResponse[]> {
+  listar(producto?: Producto | null, estados?: EstadoTicket[] | null, busqueda?: string | null): Observable<TicketResponse[]> {
     let params = new HttpParams();
     if (producto) params = params.set('producto', producto);
     if (estados?.length) params = params.set('estado', estados.join(','));
+    if (busqueda?.trim()) params = params.set('busqueda', busqueda.trim());
     return this.http.get<TicketResponse[]>(this.apiUrl, { params });
   }
 

@@ -9,6 +9,9 @@ import { TimelineModule } from 'primeng/timeline';
 import { FileUploadModule, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { EditorModule } from 'primeng/editor';
+import { FormsModule } from '@angular/forms';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { TicketsService } from '../../../../services/tickets/tickets.service';
 import { AdjuntosService } from '../../../../services/adjuntos/adjuntos.service';
@@ -70,6 +73,9 @@ const ESTADOS_ANULABLES: EstadoTicket[] = ['NUEVO', 'EN_PROGRESO', 'TESTING'];
     FileUploadModule,
     ToastModule,
     ConfirmDialogModule,
+    DialogModule,
+    EditorModule,
+    FormsModule,
     LayoutHeaderComponent,
     KpiCardComponent
   ],
@@ -82,6 +88,11 @@ export class TicketsDetailComponent implements OnInit {
   historial: HistorialEstadoResponse[] = [];
   cargando = false;
   cambiandoEstado = false;
+
+  /** Modal de motivo — obligatorio cuando TESTING vuelve a EN_PROGRESO ("no funciona"). */
+  mostrarDialogoMotivo = false;
+  motivoNota = '';
+  private destinoPendiente: EstadoTicket | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -157,6 +168,14 @@ export class TicketsDetailComponent implements OnInit {
   }
 
   ejecutarAccion(accion: AccionEstado): void {
+    // "No funciona, volver a en progreso" desde TESTING — pide motivo antes de mandar la transición.
+    if (this.ticket?.estado === 'TESTING' && accion.destino === 'EN_PROGRESO') {
+      this.destinoPendiente = accion.destino;
+      this.motivoNota = '';
+      this.mostrarDialogoMotivo = true;
+      return;
+    }
+
     if (accion.confirmar) {
       this.confirmationService.confirm({
         message: accion.confirmar,
@@ -169,6 +188,23 @@ export class TicketsDetailComponent implements OnInit {
     this.cambiarEstado(accion.destino);
   }
 
+  get motivoVacio(): boolean {
+    const texto = (this.motivoNota || '').replace(/<[^>]*>/g, '').trim();
+    return texto.length === 0;
+  }
+
+  cancelarDialogoMotivo(): void {
+    this.mostrarDialogoMotivo = false;
+    this.destinoPendiente = null;
+  }
+
+  confirmarDialogoMotivo(): void {
+    if (!this.destinoPendiente || this.motivoVacio) return;
+    const destino = this.destinoPendiente;
+    this.mostrarDialogoMotivo = false;
+    this.cambiarEstado(destino, this.motivoNota);
+  }
+
   confirmarAnular(): void {
     this.confirmationService.confirm({
       message: '¿Seguro que querés anular este ticket? No se puede deshacer.',
@@ -179,11 +215,11 @@ export class TicketsDetailComponent implements OnInit {
     });
   }
 
-  private cambiarEstado(destino: EstadoTicket): void {
+  private cambiarEstado(destino: EstadoTicket, nota?: string): void {
     if (!this.ticket) return;
 
     this.cambiandoEstado = true;
-    this.ticketsService.cambiarEstado(this.ticket.id, { estadoNuevo: destino }).subscribe({
+    this.ticketsService.cambiarEstado(this.ticket.id, { estadoNuevo: destino, nota }).subscribe({
       next: (ticket) => {
         this.ticket = ticket;
         this.cambiandoEstado = false;

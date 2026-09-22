@@ -13,6 +13,7 @@ import ar.buildrr.feedback.ticket.entity.Ticket;
 import ar.buildrr.feedback.ticket.estado.AnuladoEstado;
 import ar.buildrr.feedback.ticket.estado.CompletadoEstado;
 import ar.buildrr.feedback.ticket.estado.EnProgresoEstado;
+import ar.buildrr.feedback.ticket.estado.EstadoTicket;
 import ar.buildrr.feedback.ticket.estado.EstadoTicketResolver;
 import ar.buildrr.feedback.ticket.estado.NuevoEstado;
 import ar.buildrr.feedback.ticket.estado.TestingEstado;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -126,24 +128,32 @@ public class TicketServiceImpl implements TicketService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<TicketResponse> listar(String username, Producto filtroProducto, List<String> filtroEstados) {
+  public List<TicketResponse> listar(String username, Producto filtroProducto, List<String> filtroEstados, String busqueda) {
     Set<Producto> accesibles = accesibles(username, filtroProducto);
     if (accesibles.isEmpty()) {
       return List.of();
     }
     boolean hayFiltroEstado = filtroEstados != null && !filtroEstados.isEmpty();
 
+    List<Ticket> tickets;
     if (filtroProducto != null) {
-      List<Ticket> tickets = hayFiltroEstado
+      tickets = hayFiltroEstado
           ? ticketRepository.findByProductoAndEstadoIn(filtroProducto, filtroEstados)
           : ticketRepository.findByProducto(filtroProducto);
-      return tickets.stream().map(this::toResponse).toList();
+    } else {
+      tickets = hayFiltroEstado
+          ? ticketRepository.findByProductoInAndEstadoIn(accesibles, filtroEstados)
+          : ticketRepository.findByProductoIn(accesibles);
     }
 
-    List<Ticket> tickets = hayFiltroEstado
-        ? ticketRepository.findByProductoInAndEstadoIn(accesibles, filtroEstados)
-        : ticketRepository.findByProductoIn(accesibles);
-    return tickets.stream().map(this::toResponse).toList();
+    String textoBusqueda = busqueda == null ? null : busqueda.trim().toLowerCase();
+    return tickets.stream()
+        .filter(t -> textoBusqueda == null || textoBusqueda.isBlank()
+            || t.getTitulo().toLowerCase().contains(textoBusqueda)
+            || (t.getModulo() != null && t.getModulo().toLowerCase().contains(textoBusqueda)))
+        .sorted(Comparator.comparing(Ticket::getCreadoEn, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+        .map(this::toResponse)
+        .toList();
   }
 
   @Override
@@ -201,6 +211,12 @@ public class TicketServiceImpl implements TicketService {
 
     String estadoAnterior = ticket.getEstado();
     estadoTicketResolver.validarTransicion(estadoAnterior, request.getEstadoNuevo());
+
+    EstadoTicket actual = estadoTicketResolver.resolver(estadoAnterior);
+    boolean sinNota = request.getNota() == null || request.getNota().isBlank();
+    if (actual.requiereNota(request.getEstadoNuevo()) && sinNota) {
+      throw new TicketInvalidoException("Necesitás indicar el motivo para volver el ticket a " + request.getEstadoNuevo());
+    }
 
     ticket.setEstado(request.getEstadoNuevo());
     Ticket guardado = ticketRepository.save(ticket);

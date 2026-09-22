@@ -1,6 +1,24 @@
 <p-toast></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
+<p-dialog
+  header="Motivo del rechazo"
+  [(visible)]="mostrarDialogoMotivo"
+  [modal]="true"
+  [style]="{ width: '40rem' }"
+  (onHide)="cancelarDialogoMotivo()">
+  @if (ticket) {
+    <p class="text-sm text-gray-500 mb-3">
+      Ticket #{{ ticket.id }} — contá por qué no funcionó para que quede en el historial.
+    </p>
+  }
+  <p-editor [(ngModel)]="motivoNota" [style]="{ height: '220px' }"></p-editor>
+  <div class="flex justify-end gap-2 mt-4">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancelarDialogoMotivo()"></p-button>
+    <p-button label="Confirmar" [disabled]="motivoVacio" [loading]="cambiandoEstado" (onClick)="confirmarDialogoMotivo()"></p-button>
+  </div>
+</p-dialog>
+
 @if (ticket) {
   <app-layout-header type="detail" [title]="ticket.titulo" [subtitle]="labelProducto(ticket.producto) + ' · ' + (ticket.tipo === 'BUG' ? 'Bug' : 'Función nueva')">
     <p-tag header-title-meta [severity]="severityEstado(ticket.estado)" [value]="labelEstado(ticket.estado)"></p-tag>
@@ -145,9 +163,11 @@
                         }
                         <p-tag [severity]="severityEstado(item.estadoNuevo)" [value]="labelEstado(item.estadoNuevo)" styleClass="text-xs"></p-tag>
                       </div>
-                      <p class="text-xs text-gray-400 mt-1">{{ item.cambiadoEn | date: 'dd/MM/yy HH:mm' }} · {{ item.cambiadoPor }}</p>
+                      <p class="text-xs text-gray-400 mt-1">
+                        #{{ ticket.id }} · {{ item.cambiadoEn | date: 'dd/MM/yy HH:mm' }} · {{ item.cambiadoPor }}
+                      </p>
                       @if (item.nota) {
-                        <p class="text-sm text-gray-600 mt-1">{{ item.nota }}</p>
+                        <div class="ql-editor p-0 text-sm text-gray-600 mt-1" [innerHTML]="item.nota"></div>
                       }
                     </div>
                   </ng-template>

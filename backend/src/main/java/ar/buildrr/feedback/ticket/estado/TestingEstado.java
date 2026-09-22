@@ -19,4 +19,10 @@ public class TestingEstado implements EstadoTicket {
     // funciona (EN_PROGRESO) — ver docs/03-ciclo-de-vida.md.
     return Set.of(CompletadoEstado.NOMBRE, EnProgresoEstado.NOMBRE, AnuladoEstado.NOMBRE);
   }
+
+  @Override
+  public boolean requiereNota(String estadoDestino) {
+    // "No funciona, volver a en progreso" — necesita el motivo del rechazo.
+    return EnProgresoEstado.NOMBRE.equals(estadoDestino);
+  }
 }

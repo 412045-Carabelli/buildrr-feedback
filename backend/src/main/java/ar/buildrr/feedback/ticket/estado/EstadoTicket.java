@@ -18,4 +18,9 @@ public interface EstadoTicket {
   default boolean puedeTransicionarA(String estadoDestino) {
     return transicionesPermitidas().contains(estadoDestino);
   }
+
+  /** Transiciones donde el motivo es obligatorio (ej. "no funciona" desde TESTING) — por defecto ninguna. */
+  default boolean requiereNota(String estadoDestino) {
+    return false;
+  }
 }
