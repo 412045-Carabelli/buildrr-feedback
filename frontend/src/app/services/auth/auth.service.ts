@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { ChangePasswordRequest, ForgotPasswordRequest, LoginRequest, LoginResponse, ResetPasswordRequest } from '../../core/models/models';
 
 const TOKEN_KEY = 'buildrr_feedback_token';
+const REFRESH_KEY = 'buildrr_feedback_refresh_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -14,7 +15,7 @@ export class AuthService {
 
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap((respuesta) => localStorage.setItem(TOKEN_KEY, respuesta.access_token))
+      tap((respuesta) => this.guardarTokens(respuesta))
     );
   }
 
@@ -26,7 +27,7 @@ export class AuthService {
    */
   changePassword(request: ChangePasswordRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/change-password`, request).pipe(
-      tap((respuesta) => localStorage.setItem(TOKEN_KEY, respuesta.access_token))
+      tap((respuesta) => this.guardarTokens(respuesta))
     );
   }
 
@@ -40,8 +41,31 @@ export class AuthService {
     return this.http.post<void>(`${this.apiUrl}/reset-password`, request);
   }
 
+  /**
+   * Renueva la sesión con el refresh token de auth-service (30 días, y cada
+   * refresh devuelve uno nuevo con 30 días más). Así la sesión dura un mes
+   * desde el último uso aunque el access token venza a los 15 minutos.
+   */
+  refresh(): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/refresh`, { refreshToken: this.getRefreshToken() }).pipe(
+      tap((respuesta) => this.guardarTokens(respuesta))
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(REFRESH_KEY);
+  }
+
+  private guardarTokens(respuesta: LoginResponse): void {
+    localStorage.setItem(TOKEN_KEY, respuesta.access_token);
+    if (respuesta.refresh_token) {
+      localStorage.setItem(REFRESH_KEY, respuesta.refresh_token);
+    }
   }
 
   getToken(): string | null {
