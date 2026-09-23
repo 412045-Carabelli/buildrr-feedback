@@ -167,7 +167,14 @@
                         #{{ ticket.id }} · {{ item.cambiadoEn | date: 'dd/MM/yy HH:mm' }} · {{ item.cambiadoPor }}
                       </p>
                       @if (item.nota) {
-                        <div class="ql-editor p-0 text-sm text-gray-600 mt-1" [innerHTML]="item.nota"></div>
+                        <!-- padding inline: ql-editor trae su propio padding-left/right
+                             (quill.snow.css) que pisa el p-0 de Tailwind por orden de
+                             carga — sin esto la nota queda corrida respecto al resto. -->
+                        <div
+                          class="ql-editor text-sm text-gray-600 mt-1"
+                          style="padding: 0"
+                          [innerHTML]="item.nota">
+                        </div>
                       }
                     </div>
                   </ng-template>
